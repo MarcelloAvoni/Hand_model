@@ -17,7 +17,7 @@ class Tendon:
 
         #if the tendon is infinitely stiff, the elastic constant is set to 0
         if inf_stiff==1:
-            self.elastic_const = 0
+            self.elastic_const = 1E16
         else:
             self.elastic_const = elastic_const
 
