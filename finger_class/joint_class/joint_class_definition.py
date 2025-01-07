@@ -6,7 +6,7 @@ from math import sin, cos, atan2
 
 class Joint:
     
-    def __init__(self,name,r,L_wrench_phalanx,L_phalanx,l_a,l_b,b_a,b_b,l_c,l_d,theta,p_x,p_y,Fx_phalanx,Fy_phalanx,M_phalanx,Fx_ext,Fy_ext,M_ext,T_e,T_t,T_f):
+    def __init__(self,name,r,L_phalanx,l_a,l_b,b_a,b_b,l_c,l_d,theta,L_wrench_phalanx,gamma_phalanx,p_x,p_y,Fx_phalanx,Fy_phalanx,M_phalanx,Fx_ext,Fy_ext,M_ext,T_e,T_t,T_f):
 
         
         # NAME OF THE JOINT (string or number)
@@ -16,18 +16,20 @@ class Joint:
         # GEOMETRICAL ATTRIBUTES
         self.r = r                                  # Radius of the joint [m]
         
-        self.L_wrench_phalanx = L_wrench_phalanx    # Wrench position along current phalanx [m]
         self.L_phalanx = L_phalanx                  # Current phalanx length [m]
         
         self.l_a = l_a                              # flexor tendon vertical position along previous phalanx [m]
-        self.b_a = b_a                              # previous phalanx width [m]
+        self.b_a = b_a                              # previous phalanx lateral half width [m]
         self.l_b = l_b                              # flexor tendon vertical position along current phalanx [m]
-        self.b_b = b_b                              # current phalanx width [m]
+        self.b_b = b_b                              # current phalanx lateral half width [m]
 
         self.l_c = l_c                              # transiting tendon vertical position along previous phalanx [m]
         self.l_d = l_d                              # transiting tendon vertical position along current phalanx [m]
 
         self.theta = theta                          # Joint angle [rad]
+
+        self.L_wrench_phalanx = L_wrench_phalanx    # Wrench position along current phalanx [m]
+        self.gamma_phalanx = gamma_phalanx          # Wrench angle with respect to the x axis [rad]
 
         self.p_x = p_x                              # External wrench position with respect to rolling contact along x axis [m]
         self.p_y = p_y                              # External wrench position with respect to rolling contact along y axis [m]
@@ -55,9 +57,9 @@ class Joint:
                 f"    Wrench Position along Phalanx: {self.L_wrench_phalanx} m\n"
                 f"    Phalanx Length: {self.L_phalanx} m\n"
                 f"    Flexor Tendon Vertical Position (Previous Phalanx): {self.l_a} m\n"
-                f"    Previous Phalanx Width: {self.b_a} m\n"
+                f"    Previous Phalanx Lateral Half Width: {self.b_a} m\n"
                 f"    Flexor Tendon Vertical Position (Current Phalanx): {self.l_b} m\n"
-                f"    Current Phalanx Width: {self.b_b} m\n"
+                f"    Current Phalanx Lateral Half Width: {self.b_b} m\n"
                 f"    Transiting Tendon Vertical Position (Previous Phalanx): {self.l_c} m\n"
                 f"    Transiting Tendon Vertical Position (Current Phalanx): {self.l_d} m\n"
                 f"    Joint Angle: {self.theta} rad\n"
@@ -80,10 +82,10 @@ class Joint:
     def l_f_components(self):
 
         #x component of the flexor tendon
-        l_f_x = 2*self.r*sin(self.theta/2) + self.l_b*sin(self.theta) + (self.b_b/2)*cos(self.theta) - (self.b_a/2)
+        l_f_x = 2*self.r*sin(self.theta/2) + self.l_b*sin(self.theta) + self.b_b*cos(self.theta) - self.b_a
 
         #y component of the flexor tendon
-        l_f_y = self.l_a + 2*self.r*cos(self.theta/2) + self.l_b*cos(self.theta) - (self.b_b/2)*sin(self.theta)
+        l_f_y = self.l_a + 2*self.r*cos(self.theta/2) + self.l_b*cos(self.theta) - self.b_b*sin(self.theta)
 
         return l_f_x, l_f_y
     
@@ -113,7 +115,7 @@ class Joint:
     def transport_wrenches(self):
 
         # torque due to wrench on the phalanx
-        torque_phalanx = -(self.r*cos(self.theta/2) + self.L_wrench_phalanx*cos(self.theta))*self.Fx_phalanx + (self.r*sin(self.theta/2) + self.L_wrench_phalanx*sin(self.theta))*self.Fy_phalanx + self.M_phalanx
+        torque_phalanx = -(self.r*cos(self.theta/2) + self.L_wrench_phalanx*cos(self.theta-self.gamma_phalanx))*self.Fx_phalanx + (self.r*sin(self.theta/2) + self.L_wrench_phalanx*sin(self.theta-self.gamma_phalanx))*self.Fy_phalanx + self.M_phalanx
 
         # torquee due to external wrench
         torque_ext = -self.p_y*self.Fx_ext + self.p_x*self.Fy_ext + self.M_ext
@@ -138,7 +140,7 @@ class Joint:
 
         # here we calculate the torque due to the tendons
         # torque due to the flexor tendon
-        torque_f = + (self.r*cos(self.theta/2) + self.l_b*cos(self.theta) - (self.b_b/2)*sin(self.theta))*sin(phi_f)*self.T_f - (self.r*sin(self.theta/2) + self.l_b*sin(self.theta) + (self.b_b/2)*cos(self.theta))*cos(phi_f)*self.T_f
+        torque_f = + (self.r*cos(self.theta/2) + self.l_b*cos(self.theta) - self.b_b*sin(self.theta))*sin(phi_f)*self.T_f - (self.r*sin(self.theta/2) + self.l_b*sin(self.theta) + self.b_b*cos(self.theta))*cos(phi_f)*self.T_f
         
         # torque due to the transiting tendon
         torque_t = + (self.r*cos(self.theta/2) + self.l_d*cos(self.theta))*sin(phi_t)*self.T_t - (self.r*sin(self.theta/2) + self.l_d*sin(self.theta))*cos(phi_t)*self.T_t
