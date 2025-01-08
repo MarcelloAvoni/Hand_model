@@ -6,7 +6,7 @@ from math import sin, cos, atan2
 
 class Joint:
     
-    def __init__(self,name,r,L_phalanx,l_a,l_b,b_a,b_b,l_c,l_d,L_wrench_phalanx,gamma_phalanx,p_x,p_y,Fx_phalanx,Fy_phalanx,M_phalanx,Fx_ext,Fy_ext,M_ext,T_e,T_t,T_f):
+    def __init__(self,name,r,L_phalanx,l_a,l_b,b_a,b_b,l_c,l_d,L_wrench_phalanx,gamma_phalanx,p_x,p_y,T_e,T_t,T_f):
 
         
         # NAME OF THE JOINT (string or number)
@@ -36,13 +36,13 @@ class Joint:
 
 
         # WRENCH ATTRIBUTES
-        self.Fx_phalanx = Fx_phalanx                # Force on the phalanx along x axiS [N]
-        self.Fy_phalanx = Fy_phalanx                # Force on the phalanx along y axis [N]
-        self.M_phalanx = M_phalanx                  # Moment on the phalanx [Nm]
+        self.Fx_phalanx = 0                         # Force on the phalanx along x axiS [N]
+        self.Fy_phalanx = 0                         # Force on the phalanx along y axis [N]
+        self.M_phalanx = 0                          # Moment on the phalanx [Nm]
 
-        self.Fx_ext = Fx_ext                        # External force on the joint along x axis [N]
-        self.Fy_ext = Fy_ext                        # External force on the joint along y axis [N]
-        self.M_ext = M_ext                          # External moment on the joint [Nm]
+        self.Fx_ext = 0                             # External force on the joint along x axis [N]
+        self.Fy_ext = 0                             # External force on the joint along y axis [N]
+        self.M_ext = 0                              # External moment on the joint [Nm]
 
         # TENDONS ATTRIBUTES
         self.T_e = T_e                              # Extensor tendon tension [N]
