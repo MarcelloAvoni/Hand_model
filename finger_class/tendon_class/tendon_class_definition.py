@@ -1,9 +1,4 @@
 # TENDON CLASS DEFINITION
-
-#importing the necessary libraries
-import sys
-
-
 # here we define a tendon class to treat the tendons as separate entities from the joints, allowing for rerouting
 
 class Tendon:
@@ -24,7 +19,7 @@ class Tendon:
         self.length_0 = length_0        #length of the unstretched tendon [m]
         
         if (inf_stiff==1)&(length!=length_0):
-            sys.exit(f"Error: tendon {self.name} is infinitely stiff but the length is different from the unstretched length")
+            raise ValueError(f"Error: tendon {self.name} is infinitely stiff but the length is different from the unstretched length")
         
         self.length = length            #length of the tendon under tension [m]
         
@@ -46,7 +41,7 @@ class Tendon:
         if new_tension>0:
             self.tension = new_tension
         else:
-            sys.exit("Error: tendon {self.name} tension set to negative value")
+            raise ValueError("Error: tendon {self.name} tension set to negative value")
         
         if self.inf_stiff==0:
             self.length = self.length_0 + self.tension/self.elastic_const
@@ -57,7 +52,7 @@ class Tendon:
         if new_length_0>0:
             self.length_0 = new_length_0
         else:
-            sys.exit("Error: tendon {self.name} rest length set to negative value")
+            raise ValueError("Error: tendon {self.name} rest length set to negative value")
         
         if self.inf_stiff==0:
             self.tension = self.elastic_const*(self.length - self.length_0)
@@ -69,18 +64,12 @@ class Tendon:
     def update_given_length(self,new_length):
 
         if(self.inf_stiff==1):
-            sys.exit(f"Error: tendon {self.name} is infinitely stiff and cannot be stretched, function update_given_length() not applicable")
+            raise ValueError(f"Error: tendon {self.name} is infinitely stiff and cannot be stretched, function update_given_length() not applicable")
 
         if (new_length-self.length_0)>0:
             self.length = new_length
         else:
-            sys.exit("Error: tendon {self.name} subject to buckling")
+            raise ValueError("Error: tendon {self.name} subject to buckling")
         
         if self.inf_stiff==0:
             self.tension = self.elastic_const*(self.length - self.length_0)
-    
-
-
-
-
-
