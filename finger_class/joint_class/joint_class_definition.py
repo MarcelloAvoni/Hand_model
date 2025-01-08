@@ -6,7 +6,7 @@ from math import sin, cos, atan2
 
 class Joint:
     
-    def __init__(self,name,r,L_phalanx,l_a,l_b,b_a,b_b,l_c,l_d,theta,L_wrench_phalanx,gamma_phalanx,p_x,p_y,Fx_phalanx,Fy_phalanx,M_phalanx,Fx_ext,Fy_ext,M_ext,T_e,T_t,T_f):
+    def __init__(self,name,r,L_phalanx,l_a,l_b,b_a,b_b,l_c,l_d,L_wrench_phalanx,gamma_phalanx,p_x,p_y,Fx_phalanx,Fy_phalanx,M_phalanx,Fx_ext,Fy_ext,M_ext,T_e,T_t,T_f):
 
         
         # NAME OF THE JOINT (string or number)
@@ -26,7 +26,7 @@ class Joint:
         self.l_c = l_c                              # transiting tendon vertical position along previous phalanx [m]
         self.l_d = l_d                              # transiting tendon vertical position along current phalanx [m]
 
-        self.theta = theta                          # Joint angle [rad]
+        self.theta = 0                              # Joint angle (the joint starts from extended position) [rad]
 
         self.L_wrench_phalanx = L_wrench_phalanx    # Wrench position along current phalanx [m]
         self.gamma_phalanx = gamma_phalanx          # Wrench angle with respect to the x axis [rad]
