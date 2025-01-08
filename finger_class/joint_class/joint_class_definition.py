@@ -112,7 +112,7 @@ class Joint:
     
     
     # Method to transport the total external wrenches to the rolling point of contact of the joint and compute the torque
-    def transport_wrenches(self):
+    def transport_torques(self):
 
         # torque due to wrench on the phalanx
         torque_phalanx = -(self.r*cos(self.theta/2) + self.L_wrench_phalanx*cos(self.theta-self.gamma_phalanx))*self.Fx_phalanx + (self.r*sin(self.theta/2) + self.L_wrench_phalanx*sin(self.theta-self.gamma_phalanx))*self.Fy_phalanx + self.M_phalanx
@@ -149,7 +149,7 @@ class Joint:
         torque_e = self.r*self.T_e
 
         # here we calculate the external torques
-        torque_ext = self.transport_wrenches()
+        torque_ext = self.transport_torques()
 
         # total torque
         torque = torque_f + torque_t + torque_e + torque_ext
