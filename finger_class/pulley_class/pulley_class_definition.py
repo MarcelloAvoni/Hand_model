@@ -1,6 +1,7 @@
 # PULLEY CLASS DEFINITION
 
 #we import the necessary libraries
+from math import pi
 from scipy.integrate import quad
 
 # here we define a pulley class that gives us a method to correlate tendon length to motor's angular position
@@ -18,16 +19,16 @@ class Pulley:
     def __str__(self):
         return f"Pulley {self.name} is at position {self.angular_position} rad and has rolled {self.rolled_length} m of cable"
 
-    # Method to update the pulley state given a certain angular rotation
-    def rotate(self, angle):
+    # Method to update the pulley state given a certain angular position
+    def rotate(self, new_angular_position):
 
-        # Calculate the current and new angular positions
-        current_angle = self.angular_position
-        new_angle = self.angular_position + angle
+        number_of_turns = (new_angular_position - self.angular_position) // (2 * pi)
+        angle_incomplete_turn = (new_angular_position - self.angular_position) % (2 * pi)
 
         # Perform numerical integration to calculate the rolled length increment
-        rolled_length_increment, _ = quad(self.radius_function, current_angle, new_angle)
+        rolled_length_increment = number_of_turns * quad(self.radius_function, 0, 2*pi)
+        rolled_length_increment += quad(self.radius_function, 0, angle_incomplete_turn)
 
         # Update the rolled length and angular position
         self.rolled_length += rolled_length_increment
-        self.angular_position = new_angle
+        self.angular_position = new_angular_position
