@@ -21,11 +21,27 @@ class Spring:
     
     # method to update the spring given a new length
     def update_given_length(self,l_new):
-        self.l = l_new
-        self.F = self.k*(self.l - self.l_0)
+            self.l = l_new
+            self.F = self.k*(self.l - self.l_0)
 
+    #method to output the force given a new length
+    def output_force(self,l_new=None):
+        if l_new is None:
+            return self.F
+        else:
+             return self.k*(l_new - self.l_0)
+         
     # method to update the spring given a new force
     def update_given_force(self,F_new):
         self.F = F_new
         self.l = self.l_0 + self.F/self.k
+
+    # method to output the length given a new force
+    def output_length(self,F_new=None):
+        if F_new is None:
+            return self.l
+        else:
+            return self.l_0 + F_new/self.k
+
+
 

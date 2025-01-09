@@ -73,3 +73,37 @@ class Tendon:
         
         if self.inf_stiff==0:
             self.tension = self.elastic_const*(self.length - self.length_0)
+
+    # method to output the tension given a new length or length_0
+    def output_tension(self,new_length=None,new_length_0=None):
+
+        if self.inf_stiff==1:
+            raise ValueError(f"Error: tendon {self.name} is infinitely stiff and cannot be stretched, function output_tension() not applicable")
+        else:
+            if new_length is None:
+                if new_length_0 is None:
+                    return self.tension
+                else:
+                    return self.elastic_const*(self.length - new_length_0)
+            else:
+                if new_length_0 is None:
+                    return self.elastic_const*(new_length - self.length_0)
+                else:
+                    return self.elastic_const*(new_length - new_length_0)
+            
+    # method to output the length given a new tension or length_0
+    def output_length(self,new_tension=None,new_length_0=None):
+
+        if self.inf_stiff==1:
+            raise ValueError(f"Error: tendon {self.name} is infinitely stiff and cannot be stretched, function output_length() not applicable")
+        else:
+            if new_tension is None:
+                if new_length_0 is None:
+                    return self.length
+                else:
+                    return new_length_0 + self.tension/self.elastic_const
+            else:
+                if new_length_0 is None:
+                    return self.length_0 + new_tension/self.elastic_const
+                else:
+                    return new_length_0 + new_tension/self.elastic_const
