@@ -80,26 +80,23 @@ class Finger:
 
 
         # springs and tendons
-        map_tendon_to_spring = [0] * self.n_tendons
+        map_tendon_to_spring = [-1] * self.n_tendons
         map_spring_to_tendon = [0] * self.n_springs
         for i_iter in range(self.n_tendons):
             for j_iter in range(self.n_springs):
                 if tendon_spring_interface[i_iter][j_iter] == 1:
                     map_tendon_to_spring[i_iter] = j_iter
                     map_spring_to_tendon[j_iter] = i_iter
-                else:
-                    map_tendon_to_spring[i_iter] = 0
 
         # pulleys and tendons
-        map_tendon_to_pulley = [0] * self.n_tendons
+        map_tendon_to_pulley = [-1] * self.n_tendons
         map_pulley_to_tendon = [0] * self.n_pulleys
         for i_iter in range(self.n_tendons):
             for j_iter in range(self.n_pulleys):
                 if tendon_pulley_interface[i_iter][j_iter] == 1:
                     map_tendon_to_pulley[i_iter] = j_iter
                     map_pulley_to_tendon[j_iter] = i_iter
-                else:
-                    map_tendon_to_pulley[i_iter] = 0
+
 
         #we save the mappping vectors as well
         self.map_tendon_to_spring = map_tendon_to_spring
@@ -162,7 +159,7 @@ class Finger:
             Tension_e = 0
             Tension_t = 0
             for j_iter in range(self.n_tendons):
-                if (map_tendon_to_spring[j_iter] != 0):
+                if (map_tendon_to_spring[j_iter] != -1):
                     if(tendon_joint_interface[j_iter][i_iter] == "e"):
                         Tension_e += self.springs[map_tendon_to_spring[j_iter]].F
                     elif(tendon_joint_interface[j_iter][i_iter] == "t"):
@@ -183,12 +180,6 @@ class Finger:
                 gamma_phalanx=gamma_phalanxes[i_iter],
                 p_x=p_x[i_iter],
                 p_y=p_y[i_iter],
-                Fx_phalanx=0,
-                Fy_phalanx=0,
-                M_phalanx=0,
-                Fx_ext=0,
-                Fy_ext=0,
-                M_ext=0,
                 T_e=Tension_e,
                 T_t=Tension_t,
                 T_f=0
@@ -271,15 +262,15 @@ class Finger:
         
         # we extract the variables
         theta = variables[0:self.n_joints]
-        flexor_tendons_tensions = variables[self.n_joints:self.n_joints+self.n_tendons]
+        flexor_tendons_tensions = variables[self.n_joints:(self.n_joints+self.n_pulleys)]
 
         # we calculate the state of the system according to the variables
         lengths = self.output_tendon_lengths(theta)
         delta_lengths = [0] * self.n_tendons
         for i_iter in range(self.n_tendons):
-            delta_lengths[i_iter] = lengths - self.tendons[i_iter].length
+            delta_lengths[i_iter] = lengths[i_iter] - self.tendons[i_iter].length
 
-        tensions = [0] * self.n_springs
+        tensions = [0] * self.n_tendons
 
         # we introduce the tensions given by the springs
         for i_iter in range(self.n_springs):
