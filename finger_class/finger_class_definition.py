@@ -2,13 +2,15 @@
 # in this script we define the finger class that describes all the properties of a finger
 
 # import the necessary classes
-from joint_class.joint_class_definition import Joint
-from tendon_class.tendon_class_definition import Tendon
-from spring_class.spring_class_definition import Spring
-from pulley_class.pulley_class_definition import Pulley
+from .joint_class.joint_class_definition import Joint
+from .tendon_class.tendon_class_definition import Tendon
+from .spring_class.spring_class_definition import Spring
+from .pulley_class.pulley_class_definition import Pulley
 
 # import the necessary libraries
+import numpy as np
 from math import atan2, sqrt
+from scipy.optimize import least_squares
 
 class Finger:
 
@@ -43,14 +45,14 @@ class Finger:
             raise ValueError("The number of springs must match the number of columns in the tendon-spring interface matrix")
         
         # Tendons number extraction
-        n_tendons = len(inf_stiff_tendons)
+        self.n_tendons = len(inf_stiff_tendons)
 
         # check on tendons number on interface matrices
-        if len(tendon_joint_interface) != n_tendons:
+        if len(tendon_joint_interface) != self.n_tendons:
             raise ValueError("The number of tendons must match the number of rows in the tendon-joint routing matrix")
-        if len(tendon_spring_interface) != n_tendons:
+        if len(tendon_spring_interface) != self.n_tendons:
             raise ValueError("The number of tendons must match the number of rows in the tendon-spring interface matrix")
-        if len(tendon_pulley_interface) != n_tendons:
+        if len(tendon_pulley_interface) != self.n_tendons:
             raise ValueError("The number of tendons must match the number of rows in the tendon-pulley interface matrix")
         
         # Validate that all input lists related to joints have the same length
@@ -69,12 +71,18 @@ class Finger:
             raise ValueError("All input lists related to springs must have the same number of entries")
         
         
+        #here we save the tendon interface matrices
+        self.tendon_joint_interface = tendon_joint_interface
+        self.tendon_spring_interface = tendon_spring_interface
+        self.tendon_pulley_interface = tendon_pulley_interface
+
         # Here we create vectors that map the various components of the system
 
+
         # springs and tendons
-        map_tendon_to_spring = [0] * n_tendons
+        map_tendon_to_spring = [0] * self.n_tendons
         map_spring_to_tendon = [0] * self.n_springs
-        for i_iter in range(n_tendons):
+        for i_iter in range(self.n_tendons):
             for j_iter in range(self.n_springs):
                 if tendon_spring_interface[i_iter][j_iter] == 1:
                     map_tendon_to_spring[i_iter] = j_iter
@@ -83,9 +91,9 @@ class Finger:
                     map_tendon_to_spring[i_iter] = 0
 
         # pulleys and tendons
-        map_tendon_to_pulley = [0] * n_tendons
+        map_tendon_to_pulley = [0] * self.n_tendons
         map_pulley_to_tendon = [0] * self.n_pulleys
-        for i_iter in range(n_tendons):
+        for i_iter in range(self.n_tendons):
             for j_iter in range(self.n_pulleys):
                 if tendon_pulley_interface[i_iter][j_iter] == 1:
                     map_tendon_to_pulley[i_iter] = j_iter
@@ -93,13 +101,18 @@ class Finger:
                 else:
                     map_tendon_to_pulley[i_iter] = 0
 
+        #we save the mappping vectors as well
+        self.map_tendon_to_spring = map_tendon_to_spring
+        self.map_spring_to_tendon = map_spring_to_tendon
+        self.map_tendon_to_pulley = map_tendon_to_pulley
+        self.map_pulley_to_tendon = map_pulley_to_tendon
 
 
         
         # Preallocate lists for joints, tendons, springs, and pulleys
         self.pulleys = [None] * self.n_pulleys
         self.springs = [None] * self.n_springs
-        self.tendons = [None] * n_tendons
+        self.tendons = [None] * self.n_tendons
         self.joints = [None] * self.n_joints
 
         # Initialize the pulley list
@@ -148,15 +161,14 @@ class Finger:
             # Initialize the tension of the extensor tendons in the joint, notice that the value will be updated later
             Tension_e = 0
             Tension_t = 0
-            for j_iter in range(n_tendons):
+            for j_iter in range(self.n_tendons):
                 if (map_tendon_to_spring[j_iter] != 0):
                     if(tendon_joint_interface[j_iter][i_iter] == "e"):
                         Tension_e += self.springs[map_tendon_to_spring[j_iter]].F
                     elif(tendon_joint_interface[j_iter][i_iter] == "t"):
                         Tension_t += self.springs[map_tendon_to_spring[j_iter]].F
                     
-
-
+            # Initialize the joint
             self.joints[i_iter] = Joint(
                 name=str(i_iter+1),
                 r=r_joints[i_iter],
@@ -183,7 +195,7 @@ class Finger:
             )
 
         # Initialize the tendon list
-        for i_iter in range(n_tendons):
+        for i_iter in range(self.n_tendons):
             Length = 0
             Tension = 0
             for j_iter in range(self.n_joints):
@@ -208,46 +220,102 @@ class Finger:
                                           )
         
         # once the finger is created we can compute the initial tension of the flexor tendons
-        #first we define the problem
+        # first we define the problem
+        
+        
+        
+
 
     
-    #method that computes the moment equations of the finger in the rolling poiints of contact of the joints
-    def compute_moment_equations(theta,self):
+    #method that outputs the torques of the finger in the rolling points of contact of the joints
+    def output_torques(self,theta=None,T_f=None,T_t=None,T_e=None):        
+
+        # output preallocation
+        torques = [0] * self.n_joints
+
+        for i_iter in range(self.n_joints):
+            torques[i_iter] = self.joints[i_iter].joint_torque(theta[i_iter],T_f[i_iter],T_t[i_iter],T_e[i_iter])
+
+        return torques
+    
 
 
+    def output_tendon_lengths(self,theta=None):
 
+        # output preallocation
+        lengths = [0] * self.n_tendons
+
+        for i_iter in range(self.n_tendons):
+            Length = 0
+            for j_iter in range(self.n_joints):
+                if(self.tendon_joint_interface[i_iter][j_iter] == "f"):
+                    Length_x, Length_y = self.joints[j_iter].l_f_components(theta[j_iter])
+                    Length += sqrt(Length_x**2 + Length_y**2)
+                elif(self.tendon_joint_interface[i_iter][j_iter] == "t"):
+                    Length_x, Length_y = self.joints[j_iter].l_t_components(theta[j_iter])
+                    Length += sqrt(Length_x**2 + Length_y**2)
+                elif(self.tendon_joint_interface[i_iter][j_iter] == "e"):
+                    Length += self.joints[j_iter].l_e_length(theta[j_iter])
+            lengths[i_iter] = Length
         
+        return lengths
+    
 
 
+    #method that changes the state of the finger in order to reach equilibrium
+    def finger_equations(self,variables):
 
-
-    # method to update the state of the finger by applying a wrench on each phalanx  
-    def update_given_wrench(self,Fx,Fy,M):
+        # check on dimensionality
+        if (len(variables) != (self.n_joints + self.n_pulleys)):
+            raise ValueError("The number of variables must match the number of joints and flexor tendons")
         
-        #check on dimensionality
-        self.n_joints = len(self.joints)
-        if(len(Fx) != self.n_joints):
-            raise ValueError("The lenght of Fx must match the number of joints")
-        if(len(Fy) != self.n_joints):
-            raise ValueError("The lenght of Fy must match the number of joints")
-        if(len(M) != self.n_joints):
-            raise ValueError("The lenght of M must match the number of joints")
+        # we extract the variables
+        theta = variables[0:self.n_joints]
+        flexor_tendons_tensions = variables[self.n_joints:self.n_joints+self.n_tendons]
 
+        # we calculate the state of the system according to the variables
+        lengths = self.output_tendon_lengths(theta)
+        delta_lengths = [0] * self.n_tendons
+        for i_iter in range(self.n_tendons):
+            delta_lengths[i_iter] = lengths - self.tendons[i_iter].length
+
+        tensions = [0] * self.n_springs
+
+        # we introduce the tensions given by the springs
+        for i_iter in range(self.n_springs):
+            length_spring = self.springs[i_iter].l + delta_lengths[self.map_spring_to_tendon[i_iter]]
+            tensions[self.map_spring_to_tendon[i_iter]] = self.springs[i_iter].output_force(length_spring)
         
+        # we introduce the tensions given by the pulleys
+        for i_iter in range(self.n_pulleys):
+            tensions[self.map_pulley_to_tendon[i_iter]] = flexor_tendons_tensions[i_iter]
 
-        for i_iter in reversed(range(self.n_joints)):
-            self.joints[i_iter].Fx_phalanx = Fx[i_iter]
-            self.joints[i_iter].Fy_phalanx = Fy[i_iter]
-            self.joints[i_iter].M_phalanx = M[i_iter]
+        # we compute the tensions for each joint
+        T_e = [0] * self.n_joints
+        T_t = [0] * self.n_joints
+        T_f = [0] * self.n_joints
 
-            if (i_iter == self.n_joints - 1):
-                self.joints[i_iter].Fx_ext[i_iter] = 0
-                self.joints[i_iter].Fy_ext[i_iter] = 0
-                self.joints[i_iter].M_ext[i_iter] = 0
-            else:
-                self.joints[i_iter].Fx_ext[i_iter] = Fx[i_iter + 1] + self.joints[i_iter].Fx_ext[i_iter + 1]
-                self.joints[i_iter].Fy_ext[i_iter] = Fy[i_iter + 1] + self.joints[i_iter].Fy_ext[i_iter + 1]
-                self.joints[i_iter].M_ext[i_iter] = self.joints[i_iter + 1].transport_torques()
+        for i_iter in range(self.n_joints):
+            Tension_f = 0
+            Tension_e = 0
+            Tension_t = 0
+            for j_iter in range(self.n_tendons):
+                if (self.tendon_joint_interface[j_iter][i_iter] == "e"):
+                    Tension_e += tensions[j_iter]
+                elif (self.tendon_joint_interface[j_iter][i_iter] == "t"):
+                    Tension_t += tensions[j_iter]
+                elif (self.tendon_joint_interface[j_iter][i_iter] == "f"):
+                    Tension_f += tensions[j_iter]
+            T_e[i_iter] = Tension_e
+            T_t[i_iter] = Tension_t
+            T_f[i_iter] = Tension_f
         
+        torques = self.output_torques(theta,T_f,T_t,T_e)
 
-        # NEEDS TO BE FINISHED  
+        delta_lengths_flexor = [0] * self.n_pulleys
+        for i_iter in range(self.n_pulleys):
+            delta_lengths_flexor[i_iter] = delta_lengths[self.map_pulley_to_tendon[i_iter]]
+
+        residuals = torques + delta_lengths_flexor
+
+        return np.array(residuals)
