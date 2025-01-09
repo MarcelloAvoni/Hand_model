@@ -79,46 +79,68 @@ class Joint:
 
 
     # Method to calculate the x and y components of the flexor tendon
-    def l_f_components(self):
+    def l_f_components(self,theta=None):
 
-        #x component of the flexor tendon
-        l_f_x = 2*self.r*sin(self.theta/2) + self.l_b*sin(self.theta) + self.b_b*cos(self.theta) - self.b_a
+        if theta is None:
+            #x component of the flexor tendon
+            l_f_x = 2*self.r*sin(self.theta/2) + self.l_b*sin(self.theta) + self.b_b*cos(self.theta) - self.b_a
 
-        #y component of the flexor tendon
-        l_f_y = self.l_a + 2*self.r*cos(self.theta/2) + self.l_b*cos(self.theta) - self.b_b*sin(self.theta)
+            #y component of the flexor tendon
+            l_f_y = self.l_a + 2*self.r*cos(self.theta/2) + self.l_b*cos(self.theta) - self.b_b*sin(self.theta)
+
+        else:
+            l_f_x = 2*self.r*sin(theta/2) + self.l_b*sin(theta) + self.b_b*cos(theta) - self.b_a
+
+            l_f_y = self.l_a + 2*self.r*cos(theta/2) + self.l_b*cos(theta) - self.b_b*sin(theta)
 
         return l_f_x, l_f_y
     
 
     # Method to calculate the x and y components of the transiting tendon
-    def l_t_components(self):
+    def l_t_components(self,theta=None):
 
-        #x component of the transiting tendon
-        l_t_x = 2*self.r*sin(self.theta/2) + self.l_d*sin(self.theta)
+        if theta is None:
+            #x component of the transiting tendon
+            l_t_x = 2*self.r*sin(self.theta/2) + self.l_d*sin(self.theta)
 
-        #y component of the transiting tendon
-        l_t_y = self.l_c + 2*self.r*cos(self.theta/2) + self.l_d*cos(self.theta)
+            #y component of the transiting tendon
+            l_t_y = self.l_c + 2*self.r*cos(self.theta/2) + self.l_d*cos(self.theta)
+        else:
+            l_t_x = 2*self.r*sin(theta/2) + self.l_d*sin(theta)
+
+            l_t_y = self.l_c + 2*self.r*cos(theta/2) + self.l_d*cos(theta)
+
 
         return l_t_x, l_t_y
     
 
     # Method to calculate the length of the extensor tendon
-    def l_e_length(self):
+    def l_e_length(self,theta=None):
 
-        # Length of the extensor tendon
-        l_e = 2*self.r + self.r*self.theta
+        if theta is None:
+            # Length of the extensor tendon
+            l_e = 2*self.r + self.r*self.theta
+        else:
+            l_e = 2*self.r + self.r*theta
 
         return l_e
     
     
     # Method to transport the total external wrenches to the rolling point of contact of the joint and compute the torque
-    def transport_torques(self):
+    def transport_torques(self,theta=None):
 
-        # torque due to wrench on the phalanx
-        torque_phalanx = -(self.r*cos(self.theta/2) + self.L_wrench_phalanx*cos(self.theta-self.gamma_phalanx))*self.Fx_phalanx + (self.r*sin(self.theta/2) + self.L_wrench_phalanx*sin(self.theta-self.gamma_phalanx))*self.Fy_phalanx + self.M_phalanx
+        if theta is None:
+            # torque due to wrench on the phalanx
+            torque_phalanx = -(self.r*cos(self.theta/2) + self.L_wrench_phalanx*cos(self.theta-self.gamma_phalanx))*self.Fx_phalanx + (self.r*sin(self.theta/2) + self.L_wrench_phalanx*sin(self.theta-self.gamma_phalanx))*self.Fy_phalanx + self.M_phalanx
 
-        # torquee due to external wrench
-        torque_ext = -self.p_y*self.Fx_ext + self.p_x*self.Fy_ext + self.M_ext
+            # torquee due to external wrench
+            torque_ext = -self.p_y*self.Fx_ext + self.p_x*self.Fy_ext + self.M_ext
+        else:
+            # torque due to wrench on the phalanx
+            torque_phalanx = -(self.r*cos(theta/2) + self.L_wrench_phalanx*cos(theta-self.gamma_phalanx))*self.Fx_phalanx + (self.r*sin(theta/2) + self.L_wrench_phalanx*sin(theta-self.gamma_phalanx))*self.Fy_phalanx + self.M_phalanx
+
+            # torquee due to external wrench
+            torque_ext = -self.p_y*self.Fx_ext + self.p_x*self.Fy_ext + self.M_ext
 
         # total torque
         torque = torque_phalanx + torque_ext
@@ -128,28 +150,45 @@ class Joint:
     
 
     # Method to calculate the torque around the rolling point of contact of the joint
-    def joint_torque(self):
+    def joint_torque(self,theta=None,T_f=None,T_t=None,T_e=None):
         
         # first we calculate the x and y components of the tendons
-        l_f_x, l_f_y = self.l_f_components()
-        l_t_x, l_t_y = self.l_t_components()
+        l_f_x, l_f_y = self.l_f_components(theta)
+        l_t_x, l_t_y = self.l_t_components(theta)
     
         # we then calculate tendon's inclination angles
         phi_f = atan2(l_f_y,l_f_x)
         phi_t = atan2(l_t_y,l_t_x)
 
-        # here we calculate the torque due to the tendons
-        # torque due to the flexor tendon
-        torque_f = + (self.r*cos(self.theta/2) + self.l_b*cos(self.theta) - self.b_b*sin(self.theta))*sin(phi_f)*self.T_f - (self.r*sin(self.theta/2) + self.l_b*sin(self.theta) + self.b_b*cos(self.theta))*cos(phi_f)*self.T_f
+
+        if all(x is None for x in [theta, T_f, T_t, T_e]):
+            # here we calculate the torque due to the tendons
+            # torque due to the flexor tendon
+            torque_f = + (self.r*cos(self.theta/2) + self.l_b*cos(self.theta) - self.b_b*sin(self.theta))*sin(phi_f)*self.T_f - (self.r*sin(self.theta/2) + self.l_b*sin(self.theta) + self.b_b*cos(self.theta))*cos(phi_f)*self.T_f
         
-        # torque due to the transiting tendon
-        torque_t = + (self.r*cos(self.theta/2) + self.l_d*cos(self.theta))*sin(phi_t)*self.T_t - (self.r*sin(self.theta/2) + self.l_d*sin(self.theta))*cos(phi_t)*self.T_t
+            # torque due to the transiting tendon
+            torque_t = + (self.r*cos(self.theta/2) + self.l_d*cos(self.theta))*sin(phi_t)*self.T_t - (self.r*sin(self.theta/2) + self.l_d*sin(self.theta))*cos(phi_t)*self.T_t
 
-        # torque due to the extensor tendon
-        torque_e = self.r*self.T_e
+            # torque due to the extensor tendon
+            torque_e = self.r*self.T_e
+            
+        elif all(x is not None for x in [theta, T_f, T_t, T_e]):
+            # here we calculate the torque due to the tendons
+            # torque due to the flexor tendon
+            torque_f = + (self.r*cos(theta/2) + self.l_b*cos(theta) - self.b_b*sin(theta))*sin(phi_f)*T_f - (self.r*sin(theta/2) + self.l_b*sin(theta) + self.b_b*cos(theta))*cos(phi_f)*T_f
+        
+            # torque due to the transiting tendon
+            torque_t = + (self.r*cos(theta/2) + self.l_d*cos(theta))*sin(phi_t)*T_t - (self.r*sin(theta/2) + self.l_d*sin(theta))*cos(phi_t)*T_t
 
+            # torque due to the extensor tendon
+            torque_e = self.r*T_e
+            
+        else:
+            raise ValueError("All tendon tensions and joint angle must be provided or none of them")
+            
+            
         # here we calculate the external torques
-        torque_ext = self.transport_torques()
+        torque_ext = self.transport_torques(theta)
 
         # total torque
         torque = torque_f + torque_t + torque_e + torque_ext
