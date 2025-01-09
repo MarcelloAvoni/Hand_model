@@ -8,7 +8,6 @@ from spring_class.spring_class_definition import Spring
 from pulley_class.pulley_class_definition import Pulley
 
 # import the necessary libraries
-import numpy as np
 from math import atan2, sqrt
 
 class Finger:
