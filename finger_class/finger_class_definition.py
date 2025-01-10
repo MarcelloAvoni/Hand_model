@@ -10,7 +10,6 @@ from .pulley_class.pulley_class_definition import Pulley
 # import the necessary libraries
 import numpy as np
 from math import atan2, sqrt
-from scipy.optimize import least_squares
 
 class Finger:
 
