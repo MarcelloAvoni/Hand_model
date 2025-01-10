@@ -81,19 +81,19 @@ class Finger:
 
         # springs and tendons
         map_tendon_to_spring = [-1] * self.n_tendons
-        map_spring_to_tendon = [0] * self.n_springs
+        map_spring_to_tendon = [-1] * self.n_springs
         for i_iter in range(self.n_tendons):
             for j_iter in range(self.n_springs):
-                if tendon_spring_interface[i_iter][j_iter] == 1:
+                if self.tendon_spring_interface[i_iter][j_iter] == 1:
                     map_tendon_to_spring[i_iter] = j_iter
                     map_spring_to_tendon[j_iter] = i_iter
 
         # pulleys and tendons
         map_tendon_to_pulley = [-1] * self.n_tendons
-        map_pulley_to_tendon = [0] * self.n_pulleys
+        map_pulley_to_tendon = [-1] * self.n_pulleys
         for i_iter in range(self.n_tendons):
             for j_iter in range(self.n_pulleys):
-                if tendon_pulley_interface[i_iter][j_iter] == 1:
+                if self.tendon_pulley_interface[i_iter][j_iter] == 1:
                     map_tendon_to_pulley[i_iter] = j_iter
                     map_pulley_to_tendon[j_iter] = i_iter
 
@@ -130,6 +130,7 @@ class Finger:
 
         #here we perform data manipulation so to correlate inputs to lower classes, specifically the joint class
         L_wrench_phalanxes = [0] * self.n_joints
+        L_joint_centers = [0] * self.n_joints
         gamma_phalanxes = [0] * self.n_joints
         p_x = [0] * self.n_joints
         p_y = [0] * self.n_joints
@@ -144,7 +145,8 @@ class Finger:
                 Length_x = r_joints[i_iter] - r_joints[i_iter+1]
                 Length_y = L_phalanxes[i_iter] - r_joints[i_iter] - r_joints[i_iter+1]
 
-            L_wrench_phalanxes[i_iter] = sqrt(Length_x**2 + Length_y**2)
+            L_joint_centers[i_iter] = sqrt(Length_x**2 + Length_y**2)
+            L_wrench_phalanxes[i_iter] = L_joint_centers[i_iter]/2
             gamma_phalanxes[i_iter] = atan2(Length_x, Length_y)
 
             if (i_iter == self.n_joints - 1):
@@ -160,9 +162,9 @@ class Finger:
             Tension_t = 0
             for j_iter in range(self.n_tendons):
                 if (map_tendon_to_spring[j_iter] != -1):
-                    if(tendon_joint_interface[j_iter][i_iter] == "e"):
+                    if(self.tendon_joint_interface[j_iter][i_iter] == "e"):
                         Tension_e += self.springs[map_tendon_to_spring[j_iter]].F
-                    elif(tendon_joint_interface[j_iter][i_iter] == "t"):
+                    elif(self.tendon_joint_interface[j_iter][i_iter] == "t"):
                         Tension_t += self.springs[map_tendon_to_spring[j_iter]].F
                     
             # Initialize the joint
@@ -190,17 +192,17 @@ class Finger:
             Length = 0
             Tension = 0
             for j_iter in range(self.n_joints):
-                if(tendon_joint_interface[i_iter][j_iter] == "f"):
+                if(self.tendon_joint_interface[i_iter][j_iter] == "f"):
                     Length_x, Length_y = self.joints[j_iter].l_f_components()
                     Length += sqrt(Length_x**2 + Length_y**2)
-                elif(tendon_joint_interface[i_iter][j_iter] == "t"):
+                elif(self.tendon_joint_interface[i_iter][j_iter] == "t"):
                     Length_x, Length_y = self.joints[j_iter].l_t_components()
                     Length += sqrt(Length_x**2 + Length_y**2)
-                elif(tendon_joint_interface[i_iter][j_iter] == "e"):
+                elif(self.tendon_joint_interface[i_iter][j_iter] == "e"):
                     Length += self.joints[j_iter].l_e_length()
             
             for j_iter in range(self.n_springs):
-                if tendon_spring_interface[i_iter][j_iter] == 1:
+                if self.tendon_spring_interface[i_iter][j_iter] == 1:
                     Tension = self.springs[j_iter].F
 
             self.tendons[i_iter] = Tendon(name=str(i_iter+1),
