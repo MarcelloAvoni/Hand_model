@@ -159,11 +159,11 @@ class Finger:
 
             b_b[i_iter] = (2*r_2 - r_1) + 2*(L_phalanxes[i_iter] - r_1 - r_2 - l_b[i_iter])*(r_1 - r_2)/(L_phalanxes[i_iter] - r_1 - r_2)
 
-            if(i_iter!=self.n_joints-1):
-                if(i_iter == 0):
-                    b_a[i_iter] = b_a_metacarpal
-                else:
-                    b_a[i_iter+1] = r_2 + 2*l_a[i_iter+1]/(L_phalanxes[i_iter] - r_1 - r_2)
+            if(i_iter == 0):
+                b_a[i_iter] = b_a_metacarpal
+
+            if(i_iter!=self.n_joints-1)&(i_iter!=0):
+                b_a[i_iter+1] = r_2 + 2*l_a[i_iter+1]/(L_phalanxes[i_iter] - r_1 - r_2)
 
             
             # Initialize the tension of the extensor tendons in the joint, notice that the value will be updated later
