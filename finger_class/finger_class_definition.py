@@ -15,7 +15,7 @@ from scipy.optimize import least_squares
 class Finger:
 
     #finger class constructor. Notice that the finger is initialized as straigth (as just assembled)
-    def __init__(self,name,r_joints,r_tip,L_phalanxes,l_a,l_b,b_a,b_b,l_c,l_d,inf_stiff_tendons,k_tendons,l_springs,l_0_springs,k_springs,pulley_radius_functions,tendon_joint_interface,tendon_spring_interface,tendon_pulley_interface):
+    def __init__(self,name,r_joints,r_tip,L_phalanxes,l_a,l_b,b_a_metacarpal,l_c,l_d,inf_stiff_tendons,k_tendons,l_springs,l_0_springs,k_springs,pulley_radius_functions,tendon_joint_interface,tendon_spring_interface,tendon_pulley_interface):
         
         #name of the finger (string or number)
         self.name = name
@@ -56,7 +56,7 @@ class Finger:
             raise ValueError("The number of tendons must match the number of rows in the tendon-pulley interface matrix")
         
         # Validate that all input lists related to joints have the same length
-        lengths_inputs = [len(r_joints), len(L_phalanxes), len(l_a), len(l_b), len(b_a), len(b_b), len(l_c), len(l_d)]
+        lengths_inputs = [len(r_joints), len(L_phalanxes), len(l_a), len(l_b), len(l_c), len(l_d)]
         if len(set(lengths_inputs)) != 1:
             raise ValueError("All input lists related to joints must have the same number of entries")
         
@@ -132,29 +132,38 @@ class Finger:
         L_wrench_phalanxes = [0] * self.n_joints
         L_joint_centers = [0] * self.n_joints
         gamma_phalanxes = [0] * self.n_joints
+        b_a = [0] * self.n_joints
+        b_b = [0] * self.n_joints
         p_x = [0] * self.n_joints
         p_y = [0] * self.n_joints
 
         # Here we initialize the joint list and perform data manipulation 
         for i_iter in reversed(range(self.n_joints)):
 
-            if (i_iter == self.n_joints-1):
-                Length_x = r_joints[i_iter] - r_tip
-                Length_y = L_phalanxes[i_iter] - r_joints[i_iter] - r_tip
+            if(i_iter == self.n_joints-1):
+                r_1 = r_joints[i_iter]
+                r_2 = r_tip
             else:
-                Length_x = r_joints[i_iter] - r_joints[i_iter+1]
-                Length_y = L_phalanxes[i_iter] - r_joints[i_iter] - r_joints[i_iter+1]
+                r_1 = r_joints[i_iter]
+                r_2 = r_joints[i_iter+1]
+
+            Length_x = r_1 - r_2
+            Length_y = L_phalanxes[i_iter] - r_1 - r_2
 
             L_joint_centers[i_iter] = sqrt(Length_x**2 + Length_y**2)
             L_wrench_phalanxes[i_iter] = L_joint_centers[i_iter]/2
             gamma_phalanxes[i_iter] = atan2(Length_x, Length_y)
 
-            if (i_iter == self.n_joints - 1):
-                p_x[i_iter] = r_tip - r_joints[i_iter]
-            else:
-                p_x[i_iter] = r_joints[i_iter + 1] - r_joints[i_iter]
-
+            p_x[i_iter] = r_2 - r_1
             p_y[i_iter] = L_phalanxes[i_iter]
+
+            b_b[i_iter] = (2*r_2 - r_1) + 2*(L_phalanxes[i_iter] - r_1 - r_2 - l_b[i_iter])*(r_1 - r_2)/(L_phalanxes[i_iter] - r_1 - r_2)
+
+            if(i_iter!=self.n_joints-1):
+                if(i_iter == 0):
+                    b_a[i_iter] = b_a_metacarpal
+                else:
+                    b_a[i_iter+1] = r_2 + 2*l_a[i_iter+1]/(L_phalanxes[i_iter] - r_1 - r_2)
 
             
             # Initialize the tension of the extensor tendons in the joint, notice that the value will be updated later

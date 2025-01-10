@@ -10,8 +10,7 @@ def test_finger_equations():
     L_phalanxes = [10]
     l_a = [1]
     l_b = [1]
-    b_a = [1]
-    b_b = [1]
+    b_a_metacarpal = [1]
     l_c = [1]
     l_d = [1]
     inf_stiff_tendons = [1,1]
@@ -24,7 +23,7 @@ def test_finger_equations():
     tendon_spring_interface = [[0],[1]]
     tendon_pulley_interface = [[1],[0]]
 
-    finger = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a, b_b, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
+    finger = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
 
     # Initial guess for the variables (joint angle and flexor tendon tension)
     initial_guess = np.zeros(finger.n_joints + finger.n_pulleys)
