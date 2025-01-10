@@ -17,7 +17,7 @@ def test_finger_equations():
     inf_stiff_tendons = [1,1]
     k_tendons = [0,0]
     l_springs = [1]
-    l_0_springs = [1]
+    l_0_springs = [0]
     k_springs = [1]
     pulley_radius_functions = [lambda x: 1]
     tendon_joint_interface = [["f"],["e"]]

@@ -157,8 +157,8 @@ class Joint:
         l_t_x, l_t_y = self.l_t_components(theta)
     
         # we then calculate tendon's inclination angles
-        phi_f = atan2(l_f_y,l_f_x)
-        phi_t = atan2(l_t_y,l_t_x)
+        phi_f = atan2(l_f_x,l_f_y)
+        phi_t = atan2(l_t_x,l_t_y)
 
 
         if all(x is None for x in [theta, T_f, T_t, T_e]):
