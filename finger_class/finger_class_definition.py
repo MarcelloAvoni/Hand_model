@@ -406,15 +406,26 @@ class Finger:
         for i_iter in range(self.n_tendons):
             self.tendons[i_iter].length = lengths[i_iter]
 
+        #we update the spring lengths
+        spring_lengths = self.output_spring_lengths(theta_eq)
+        for i_iter in range(self.n_springs):
+            self.springs[i_iter].l = spring_lengths[i_iter]
+
         #we update the spring forces
         spring_forces = self.output_spring_forces(theta_eq)
         for i_iter in range(self.n_springs):
             self.springs[i_iter].F = spring_forces[i_iter]
 
         # finally we update the tendon tensions
-        tensions = [0] * self.n_tendons
+        for i_iter in range(self.n_springs):
+            self.tendons[self.map_spring_to_tendon[i_iter]].tension = spring_forces[i_iter]
+        
+        for i_iter in range(self.n_pulleys):
+            self.tendon[self.map_pulley_to_tendon[i_iter]].tension = flexor_tendons_tensions_eq[i_iter]
 
-        # first we calculate the extensor tendon tensions
+
+        
+
     
 
 
