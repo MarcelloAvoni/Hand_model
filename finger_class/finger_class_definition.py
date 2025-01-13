@@ -114,14 +114,14 @@ class Finger:
 
         # Initialize the pulley list
         for i_iter in range(self.n_pulleys):
-            self.pulleys[i_iter] = Pulley(name=str(i_iter+1),
+            self.pulleys[i_iter] = Pulley(name=str(i_iter),
                                           radius_function=pulley_radius_functions[i_iter]
                                           )
 
 
         # Initialize the spring list
         for i_iter in range(self.n_springs):
-            self.springs[i_iter] = Spring(name=str(i_iter+1),
+            self.springs[i_iter] = Spring(name=str(i_iter),
                                           k=k_springs[i_iter],
                                           l=l_springs[i_iter],
                                           l_0=l_0_springs[i_iter]
@@ -178,7 +178,7 @@ class Finger:
                     
             # Initialize the joint
             self.joints[i_iter] = Joint(
-                name=str(i_iter+1),
+                name=str(i_iter),
                 r=r_joints[i_iter],
                 L_phalanx=L_phalanxes[i_iter],
                 l_a=l_a[i_iter],
@@ -214,7 +214,7 @@ class Finger:
                 if self.tendon_spring_interface[i_iter][j_iter] == 1:
                     Tension = self.springs[j_iter].F
 
-            self.tendons[i_iter] = Tendon(name=str(i_iter+1),
+            self.tendons[i_iter] = Tendon(name=str(i_iter),
                                           inf_stiff=inf_stiff_tendons[i_iter],
                                           elastic_const=k_tendons[i_iter],
                                           length_0=Length,length=Length,
