@@ -395,33 +395,36 @@ class Finger:
         theta_eq = result[0:self.n_joints]
         flexor_tendons_tensions_eq = result[self.n_joints:(self.n_joints+self.n_pulleys)]
 
-        # we update the object
+        # now we update the object
 
-        # first we update the joint angles
+
+        #we update the spring status given the lengths (the F is updated as a result)
+        spring_lengths = self.output_spring_lengths(theta_eq)
+        for i_iter in range(self.n_springs):
+            self.springs[i_iter].update_given_length(spring_lengths[i_iter])
+
+        # we update the tendon lengths_0 (and the tendon lengths as a result)
+        tendon_lengths = self.output_tendon_lengths(theta_eq)
+        for i_iter in range(self.n_tendons):
+            self.tendons[i_iter].update_given_length_0(tendon_lengths[i_iter])
+
+        #  we update the tendon tensions
+        for i_iter in range(self.n_springs):
+            self.tendons[self.map_spring_to_tendon[i_iter]].update_given_tension(self.springs[i_iter].F)
+        
+        for i_iter in range(self.n_pulleys):
+            self.tendon[self.map_pulley_to_tendon[i_iter]].update_given_tension(flexor_tendons_tensions_eq[i_iter])
+
+        # we update the joint angles
         for i_iter in range(self.n_joints):
             self.joints[i_iter].theta = theta_eq[i_iter]
 
-        # then we update the tendon lengths
-        lengths = self.output_tendon_lengths(theta_eq)
-        for i_iter in range(self.n_tendons):
-            self.tendons[i_iter].length = lengths[i_iter]
-
-        #we update the spring lengths
-        spring_lengths = self.output_spring_lengths(theta_eq)
-        for i_iter in range(self.n_springs):
-            self.springs[i_iter].l = spring_lengths[i_iter]
-
-        #we update the spring forces
-        spring_forces = self.output_spring_forces(theta_eq)
-        for i_iter in range(self.n_springs):
-            self.springs[i_iter].F = spring_forces[i_iter]
-
-        # finally we update the tendon tensions
-        for i_iter in range(self.n_springs):
-            self.tendons[self.map_spring_to_tendon[i_iter]].tension = spring_forces[i_iter]
-        
-        for i_iter in range(self.n_pulleys):
-            self.tendon[self.map_pulley_to_tendon[i_iter]].tension = flexor_tendons_tensions_eq[i_iter]
+        # we update the joint tensions
+        T_f,T_t,T_e = self.output_joint_tensions(theta_eq,flexor_tendons_tensions_eq)
+        for i_iter in range(self.n_joints):
+            self.joints[i_iter].T_f = T_f[i_iter]
+            self.joints[i_iter].T_t = T_t[i_iter]
+            self.joints[i_iter].T_e = T_e[i_iter]
 
 
         
