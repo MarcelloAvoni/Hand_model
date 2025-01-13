@@ -400,7 +400,6 @@ class Finger:
 
         # now we update the object
 
-
         #we update the spring status given the lengths (the F is updated as a result)
         spring_lengths = self.output_spring_lengths(theta_eq)
         for i_iter in range(self.n_springs):
@@ -429,6 +428,26 @@ class Finger:
             self.joints[i_iter].T_t = T_t[i_iter]
             self.joints[i_iter].T_e = T_e[i_iter]
 
+
+    # method that updates the state of the finger given the flexor tendon lengths
+    def update_given_flexor_length(self,length_new):
+
+        #we extract current state to obtain the initial guess
+        theta = [0] * self.n_joints
+        flexor_tendons_tensions = [0] * self.n_pulleys
+        for i_iter in range(self.n_joints):
+            theta[i_iter] = self.joints[i_iter].theta
+        for i_iter in range(self.n_pulleys):
+            flexor_tendons_tensions[i_iter] = self.tendons[self.map_pulley_to_tendon[i_iter]].tension
+
+        initial_guess = theta + flexor_tendons_tensions
+
+        # we update the flexor lengths
+        for i_iter in range(self.n_pulleys):
+            self.tendons[self.map_pulley_to_tendon[i_iter]].update_given_length_0(length_new[i_iter])
+
+        # we solve the equilibrium problem and update the state of the finger
+        self.finger_equilibrium(initial_guess)
 
         
 
