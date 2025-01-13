@@ -395,8 +395,8 @@ class Finger:
         result = least_squares(self.finger_equations, initial_guess)
 
         # we extract the equilibrium variables
-        theta_eq = result[0:self.n_joints]
-        flexor_tendons_tensions_eq = result[self.n_joints:(self.n_joints+self.n_pulleys)]
+        theta_eq = result.x[0:self.n_joints]
+        flexor_tendons_tensions_eq = result.x[self.n_joints:(self.n_joints+self.n_pulleys)]
 
         # now we update the object
 
@@ -416,7 +416,7 @@ class Finger:
             self.tendons[self.map_spring_to_tendon[i_iter]].update_given_tension(self.springs[i_iter].F)
         
         for i_iter in range(self.n_pulleys):
-            self.tendon[self.map_pulley_to_tendon[i_iter]].update_given_tension(flexor_tendons_tensions_eq[i_iter])
+            self.tendons[self.map_pulley_to_tendon[i_iter]].update_given_tension(flexor_tendons_tensions_eq[i_iter])
 
         # we update the joint angles
         for i_iter in range(self.n_joints):
