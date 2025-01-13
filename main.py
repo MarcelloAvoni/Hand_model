@@ -29,7 +29,7 @@ if __name__ == "__main__":
     finger = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
     print(finger.tendons[0].tension)
     print(finger.joints[0].theta)
-    finger.update_given_flexor_length([1])
+    finger.update_given_flexor_length([0.5857864376])
     print(finger.tendons[0].tension)
     print(finger.joints[0].theta)
 

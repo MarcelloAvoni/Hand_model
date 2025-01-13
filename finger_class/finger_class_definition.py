@@ -165,16 +165,6 @@ class Finger:
             if(i_iter!=self.n_joints-1)&(i_iter!=0):
                 b_a[i_iter+1] = r_2 + 2*l_a[i_iter+1]/(L_phalanxes[i_iter] - r_1 - r_2)
 
-            
-            # Initialize the tension of the extensor tendons in the joint, notice that the value will be updated later
-            Tension_e = 0
-            Tension_t = 0
-            for j_iter in range(self.n_tendons):
-                if (map_tendon_to_spring[j_iter] != -1):
-                    if(self.tendon_joint_interface[j_iter][i_iter] == "e"):
-                        Tension_e += self.springs[map_tendon_to_spring[j_iter]].F
-                    elif(self.tendon_joint_interface[j_iter][i_iter] == "t"):
-                        Tension_t += self.springs[map_tendon_to_spring[j_iter]].F
                     
             # Initialize the joint
             self.joints[i_iter] = Joint(
@@ -191,34 +181,25 @@ class Finger:
                 gamma_phalanx=gamma_phalanxes[i_iter],
                 p_x=p_x[i_iter],
                 p_y=p_y[i_iter],
-                T_e=Tension_e,
-                T_t=Tension_t,
+                T_e=0,
+                T_t=0,
                 T_f=0
             )
 
         # Initialize the tendon list
-        for i_iter in range(self.n_tendons):
-            Length = 0
-            Tension = 0
-            for j_iter in range(self.n_joints):
-                if(self.tendon_joint_interface[i_iter][j_iter] == "f"):
-                    Length_x, Length_y = self.joints[j_iter].l_f_components()
-                    Length += sqrt(Length_x**2 + Length_y**2)
-                elif(self.tendon_joint_interface[i_iter][j_iter] == "t"):
-                    Length_x, Length_y = self.joints[j_iter].l_t_components()
-                    Length += sqrt(Length_x**2 + Length_y**2)
-                elif(self.tendon_joint_interface[i_iter][j_iter] == "e"):
-                    Length += self.joints[j_iter].l_e_length()
-            
-            for j_iter in range(self.n_springs):
-                if self.tendon_spring_interface[i_iter][j_iter] == 1:
-                    Tension = self.springs[j_iter].F
+        lengths = self.output_tendon_lengths()
 
+        tensions = [0] * self.n_tendons
+        for i_iter in range(self.n_springs):
+            tensions[self.map_spring_to_tendon[i_iter]] = self.springs[i_iter].F
+
+        for i_iter in range(self.n_tendons):
             self.tendons[i_iter] = Tendon(name=str(i_iter),
                                           inf_stiff=inf_stiff_tendons[i_iter],
                                           elastic_const=k_tendons[i_iter],
-                                          length_0=Length,length=Length,
-                                          tension=Tension
+                                          length_0=lengths[i_iter],
+                                          length=lengths[i_iter],
+                                          tension=tensions[i_iter]
                                           )
         
         # once the finger is created we can compute the initial tension of the flexor tendons
@@ -254,13 +235,22 @@ class Finger:
             Length = 0
             for j_iter in range(self.n_joints):
                 if(self.tendon_joint_interface[i_iter][j_iter] == "f"):
-                    Length_x, Length_y = self.joints[j_iter].l_f_components(theta[j_iter])
+                    if theta is None:
+                        Length_x, Length_y = self.joints[j_iter].l_f_components()
+                    else:
+                        Length_x, Length_y = self.joints[j_iter].l_f_components(theta[j_iter])
                     Length += sqrt(Length_x**2 + Length_y**2)
                 elif(self.tendon_joint_interface[i_iter][j_iter] == "t"):
-                    Length_x, Length_y = self.joints[j_iter].l_t_components(theta[j_iter])
+                    if theta is None:
+                        Length_x, Length_y = self.joints[j_iter].l_t_components()
+                    else:
+                        Length_x, Length_y = self.joints[j_iter].l_t_components(theta[j_iter])
                     Length += sqrt(Length_x**2 + Length_y**2)
                 elif(self.tendon_joint_interface[i_iter][j_iter] == "e"):
-                    Length += self.joints[j_iter].l_e_length(theta[j_iter])
+                    if theta is None:
+                        Length += self.joints[j_iter].l_e_length()
+                    else:
+                        Length += self.joints[j_iter].l_e_length(theta[j_iter])
             lengths[i_iter] = Length
         
         return lengths
@@ -449,7 +439,7 @@ class Finger:
         # we solve the equilibrium problem and update the state of the finger
         self.finger_equilibrium(initial_guess)
 
-    
+
         
 
     
