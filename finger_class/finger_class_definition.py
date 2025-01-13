@@ -262,10 +262,10 @@ class Finger:
         
         return lengths
     
-    def output_spring_forces(self,theta=None):
-        
-        #output preallocation
-        spring_forces = [0] * self.n_springs
+    def output_spring_lengths(self,theta=None):
+
+        # output preallocation
+        spring_lengths = [0] * self.n_springs
 
         #we calculate the change of length in the tendons
         lengths = self.output_tendon_lengths(theta)
@@ -275,11 +275,28 @@ class Finger:
 
         #we calculate the tensions in the springs given the change of length in the tendons
         for i_iter in range(self.n_springs):
-            length_spring = self.springs[i_iter].l + delta_lengths[self.map_spring_to_tendon[i_iter]]
-            spring_forces[i_iter] = self.springs[i_iter].output_force(length_spring)
+            spring_lengths[i_iter] = self.springs[i_iter].l + delta_lengths[self.map_spring_to_tendon[i_iter]]
+
+        return spring_lengths
+
+
+    
+
+    def output_spring_forces(self,theta=None):
+        
+        #output preallocation
+        spring_forces = [0] * self.n_springs
+
+        #we calculate the change of length in the springs
+        spring_lengths = self.output_spring_lengths(theta)
+
+        #we calculate the tensions in the springs given the change of length in the tendons
+        for i_iter in range(self.n_springs):
+            spring_forces[i_iter] = self.springs[i_iter].output_force(spring_lengths[i_iter])
         
         return spring_forces
     
+
     #function that outputs the joint tensions of the tendons
     def output_joint_tensions(self,theta=None,flexor_tendons_tensions=None):
 
@@ -296,7 +313,10 @@ class Finger:
         
         #we introduce the tensions given by the pulleys
         for i_iter in range(self.n_pulleys):
-            tensions[self.map_pulley_to_tendon[i_iter]] = flexor_tendons_tensions[i_iter]
+            if flexor_tendons_tensions is None:
+                tensions[self.map_pulley_to_tendon[i_iter]] = self.tendons[self.map_pulley_to_tendon[i_iter]].tension
+            else:
+                tensions[self.map_pulley_to_tendon[i_iter]] = flexor_tendons_tensions[i_iter]
 
         #we compute the tensions for each joint
         for i_iter in range(self.n_joints):
@@ -329,48 +349,32 @@ class Finger:
         theta = variables[0:self.n_joints]
         flexor_tendons_tensions = variables[self.n_joints:(self.n_joints+self.n_pulleys)]
 
-        # we calculate the state of the system according to the tentative variables
-        lengths = self.output_tendon_lengths(theta)
-        delta_lengths = [0] * self.n_tendons
-        for i_iter in range(self.n_tendons):
-            delta_lengths[i_iter] = lengths[i_iter] - self.tendons[i_iter].length
+        # we calculate the spring forces according to the state variables
+        spring_forces = self.output_spring_forces(theta)
 
+
+        #we define the vector of tendon tensions
         tensions = [0] * self.n_tendons
 
         # we introduce the tensions given by the springs
         for i_iter in range(self.n_springs):
-            length_spring = self.springs[i_iter].l + delta_lengths[self.map_spring_to_tendon[i_iter]]
-            tensions[self.map_spring_to_tendon[i_iter]] = self.springs[i_iter].output_force(length_spring)
+            tensions[self.map_spring_to_tendon[i_iter]] = spring_forces[i_iter]
         
         # we introduce the tensions given by the pulleys
         for i_iter in range(self.n_pulleys):
             tensions[self.map_pulley_to_tendon[i_iter]] = flexor_tendons_tensions[i_iter]
 
         # we compute the tensions for each joint
-        T_e = [0] * self.n_joints
-        T_t = [0] * self.n_joints
-        T_f = [0] * self.n_joints
-
-        for i_iter in range(self.n_joints):
-            Tension_f = 0
-            Tension_e = 0
-            Tension_t = 0
-            for j_iter in range(self.n_tendons):
-                if (self.tendon_joint_interface[j_iter][i_iter] == "e"):
-                    Tension_e += tensions[j_iter]
-                elif (self.tendon_joint_interface[j_iter][i_iter] == "t"):
-                    Tension_t += tensions[j_iter]
-                elif (self.tendon_joint_interface[j_iter][i_iter] == "f"):
-                    Tension_f += tensions[j_iter]
-            T_e[i_iter] = Tension_e
-            T_t[i_iter] = Tension_t
-            T_f[i_iter] = Tension_f
+        T_f,T_t,T_e = self.output_joint_tensions(theta,flexor_tendons_tensions)
         
         torques = self.output_torques(theta,T_f,T_t,T_e)
 
+
+        #we compute the residuals on flexor tendon lengths
+        lengths = self.output_tendon_lengths(theta)
         delta_lengths_flexor = [0] * self.n_pulleys
         for i_iter in range(self.n_pulleys):
-            delta_lengths_flexor[i_iter] = delta_lengths[self.map_pulley_to_tendon[i_iter]]
+            delta_lengths_flexor[i_iter] = lengths[self.map_pulley_to_tendon[i_iter]] - self.tendons[i_iter].length
 
         residuals = torques + delta_lengths_flexor
 
@@ -389,8 +393,31 @@ class Finger:
 
         # we extract the equilibrium variables
         theta_eq = result[0:self.n_joints]
-        flexor_tendons_tensions = result[self.n_joints:(self.n_joints+self.n_pulleys)]
+        flexor_tendons_tensions_eq = result[self.n_joints:(self.n_joints+self.n_pulleys)]
 
         # we update the object
+
+        # first we update the joint angles
+        for i_iter in range(self.n_joints):
+            self.joints[i_iter].theta = theta_eq[i_iter]
+
+        # then we update the tendon lengths
+        lengths = self.output_tendon_lengths(theta_eq)
+        for i_iter in range(self.n_tendons):
+            self.tendons[i_iter].length = lengths[i_iter]
+
+        #we update the spring forces
+        spring_forces = self.output_spring_forces(theta_eq)
+        for i_iter in range(self.n_springs):
+            self.springs[i_iter].F = spring_forces[i_iter]
+
+        # finally we update the tendon tensions
+        tensions = [0] * self.n_tendons
+
+        # first we calculate the extensor tendon tensions
+    
+
+
+
 
 
