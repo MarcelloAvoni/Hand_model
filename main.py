@@ -32,3 +32,6 @@ if __name__ == "__main__":
     finger.update_given_flexor_length([1])
     print(finger.tendons[0].tension)
     print(finger.joints[0].theta)
+
+
+    

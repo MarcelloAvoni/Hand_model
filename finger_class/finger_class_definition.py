@@ -449,6 +449,7 @@ class Finger:
         # we solve the equilibrium problem and update the state of the finger
         self.finger_equilibrium(initial_guess)
 
+    
         
 
     
