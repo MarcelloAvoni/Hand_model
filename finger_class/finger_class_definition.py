@@ -443,7 +443,9 @@ class Finger:
         for i_iter in range(self.n_pulleys):
             delta_lengths_flexor[i_iter] = lengths[self.map_pulley_to_tendon[i_iter]] - self.tendons[i_iter].length
 
-        residuals = torques + delta_lengths_flexor
+
+        #we compute the residuals
+        residuals =  torques + delta_lengths_flexor
 
         return np.array(residuals)
     
@@ -460,7 +462,13 @@ class Finger:
         upper_bounds = np.inf * np.ones(self.n_joints + self.n_pulleys)
 
         # Solve for equilibrium using least_squares
-        result = least_squares(self.finger_equations, initial_guess, bounds=(lower_bounds, upper_bounds))
+        result = least_squares(self.finger_equations,
+                               initial_guess,
+                               bounds=(lower_bounds, upper_bounds),
+                               loss='linear',
+                               ftol=5e-16,
+                               xtol=5e-16,
+                               gtol=5e-16)
 
         # we extract the equilibrium variables
         theta_eq = result.x[0:self.n_joints]

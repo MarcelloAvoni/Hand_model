@@ -18,7 +18,7 @@ if __name__ == "__main__":
     l_d = [0,0]
     inf_stiff_tendons = [1,1,1,1]
     k_tendons = [0,0,0,0]
-    l_springs = [0,0]
+    l_springs = [1,1]
     l_0_springs = [0,0]
     k_springs = [1,1]
     pulley_radius_functions = [lambda x: 1,lambda x: 1]
