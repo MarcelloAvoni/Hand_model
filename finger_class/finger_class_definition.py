@@ -222,7 +222,10 @@ class Finger:
                                           )
         
         # once the finger is created we can compute the initial tension of the flexor tendons
-        # first we define the problem
+        # by solving it as an equilibrium problem
+        self.finger_equilibrium()
+
+
         
         
         
