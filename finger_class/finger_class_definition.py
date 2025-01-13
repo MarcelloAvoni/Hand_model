@@ -9,7 +9,7 @@ from .pulley_class.pulley_class_definition import Pulley
 
 # import the necessary libraries
 import numpy as np
-from math import atan2, sqrt
+from math import atan2, sqrt, sin, cos
 from scipy.optimize import least_squares
 
 class Finger:
@@ -186,6 +186,9 @@ class Finger:
                 T_f=0
             )
 
+        # save length joint centers (to be used in p_x and p_y)
+        self.L_joint_centers = L_joint_centers
+
         # Initialize the tendon list
         lengths = self.output_tendon_lengths()
 
@@ -214,18 +217,18 @@ class Finger:
 
     
     #method that outputs the torques of the finger in the rolling points of contact of the joints
-    def output_torques(self,theta=None,T_f=None,T_t=None,T_e=None):        
+    def output_torques(self,theta=None,T_f=None,T_t=None,T_e=None,p_x=None,p_y=None,Fx_ext=None,Fy_ext=None,M_ext=None):        
 
         # output preallocation
         torques = [0] * self.n_joints
 
         for i_iter in range(self.n_joints):
-            torques[i_iter] = self.joints[i_iter].joint_torque(theta[i_iter],T_f[i_iter],T_t[i_iter],T_e[i_iter])
+            torques[i_iter] = self.joints[i_iter].joint_torque(theta[i_iter],T_f[i_iter],T_t[i_iter],T_e[i_iter],p_x[i_iter],p_y[i_iter],Fx_ext[i_iter],Fy_ext[i_iter],M_ext[i_iter])
 
         return torques
     
 
-
+    #method that calculates the lengths of the tendons
     def output_tendon_lengths(self,theta=None):
 
         # output preallocation
@@ -255,6 +258,8 @@ class Finger:
         
         return lengths
     
+
+    #method that calculates the lengths of the springs
     def output_spring_lengths(self,theta=None):
 
         # output preallocation
@@ -274,7 +279,7 @@ class Finger:
 
 
     
-
+    #method that calculates the forces in the springs
     def output_spring_forces(self,theta=None):
         
         #output preallocation
@@ -328,7 +333,72 @@ class Finger:
             T_f[i_iter] = Tension_f
         
         return T_f,T_t,T_e
-     
+    
+
+    # function that outputs the external wrenches positions in the joints
+    def output_ext_wrench_positions(self,theta=None):
+
+        #input check
+        if theta is None:
+            theta = [0] * self.n_joints
+            for i_iter in range(self.n_joints):
+                theta[i_iter] = self.joints[i_iter].theta
+
+        # output preallocation
+        p_x = [0] * self.n_joints
+        p_y = [0] * self.n_joints
+
+        if (self.n_joints>1):
+            for i_iter in range(self.n_joints-1):
+                r_1 = self.joints[i_iter].r
+                r_2 = self.joints[i_iter+1].r
+                l_joints = self.L_joint_centers[i_iter]
+                gamma = self.joints[i_iter].gamma_phalanx
+                p_x[i_iter] = r_1*sin(theta[i_iter]/2) + l_joints*sin(theta[i_iter] - gamma) + r_2*sin(theta[i_iter] + theta[i_iter+1]/2)
+                p_y[i_iter] = r_1*cos(theta[i_iter]/2) + l_joints*cos(theta[i_iter] - gamma) + r_2*cos(theta[i_iter] + theta[i_iter+1]/2)
+
+        return p_x, p_y
+    
+
+    #function that outputs the external wrenches in the joints given the wrenchs on the phalanxes
+    def output_ext_wrenches(self,theta=None,Fx=None,Fy=None,M=None):
+
+        #input check
+        if theta is None:
+            theta = [0] * self.n_joints
+            for i_iter in range(self.n_joints):
+                theta[i_iter] = self.joints[i_iter].theta
+
+        if (Fx is None) & (Fy is None) & (M is None):
+            Fx = [0] * self.n_joints
+            Fy = [0] * self.n_joints
+            M = [0] * self.n_joints
+            for i_iter in range(self.n_joints):
+                Fx[i_iter] = self.joints[i_iter].Fx_phalanx
+                Fy[i_iter] = self.joints[i_iter].Fy_phalanx
+                M[i_iter] = self.joints[i_iter].M_phalanx
+
+        # output preallocation
+        Fx_ext = [0] * self.n_joints
+        Fy_ext = [0] * self.n_joints
+        M_ext = [0] * self.n_joints
+
+        # calculate the wrenches position in the joints
+        p_x, p_y = self.output_ext_wrench_positions(theta)
+
+        # we calculate the external wrenches in the joints
+        for i_iter in reversed(range(self.n_joints)):
+
+            if(i_iter == self.n_joints-1):
+                Fx_ext[i_iter] = 0
+                Fy_ext[i_iter] = 0
+                M_ext[i_iter] = 0
+            else:
+                Fx_ext[i_iter] = Fx[i_iter+1] + Fx_ext[i_iter+1]
+                Fy_ext[i_iter] = Fy[i_iter+1] + Fy_ext[i_iter+1]
+                M_ext[i_iter] = self.joints[i_iter+1].transport_torques(theta[i_iter+1],p_x[i_iter+1],p_y[i_iter+1],Fx_ext[i_iter+1],Fy_ext[i_iter+1],M_ext[i_iter+1])
+
+        return Fx_ext,Fy_ext,M_ext
 
 
     #method that computes the equilibrium of the finger
@@ -359,8 +429,12 @@ class Finger:
 
         # we compute the tensions for each joint
         T_f,T_t,T_e = self.output_joint_tensions(theta,flexor_tendons_tensions)
+
+        # we compute torques given by the external wrenches
+        p_x, p_y = self.output_ext_wrench_positions(theta)
+        Fx_ext,Fy_ext,M_ext = self.output_ext_wrenches(theta)
         
-        torques = self.output_torques(theta,T_f,T_t,T_e)
+        torques = self.output_torques(theta,T_f,T_t,T_e,p_x,p_y,Fx_ext,Fy_ext,M_ext)
 
 
         #we compute the residuals on flexor tendon lengths
@@ -381,8 +455,12 @@ class Finger:
         if initial_guess is None:
             initial_guess = np.zeros(self.n_joints + self.n_pulleys)
 
+        #we define bounds for the variables  TO BE REFINED!!!!
+        lower_bounds = np.zeros(self.n_joints + self.n_pulleys)
+        upper_bounds = np.inf * np.ones(self.n_joints + self.n_pulleys)
+
         # Solve for equilibrium using least_squares
-        result = least_squares(self.finger_equations, initial_guess)
+        result = least_squares(self.finger_equations, initial_guess, bounds=(lower_bounds, upper_bounds))
 
         # we extract the equilibrium variables
         theta_eq = result.x[0:self.n_joints]
@@ -417,6 +495,19 @@ class Finger:
             self.joints[i_iter].T_f = T_f[i_iter]
             self.joints[i_iter].T_t = T_t[i_iter]
             self.joints[i_iter].T_e = T_e[i_iter]
+
+        # we update the external wrenches position
+        p_x, p_y = self.output_ext_wrench_positions(theta_eq)
+        for i_iter in range(self.n_joints):
+            self.joints[i_iter].p_x = p_x[i_iter]
+            self.joints[i_iter].p_y = p_y[i_iter]
+
+        # we update the external wrenches
+        Fx_ext,Fy_ext,M_ext = self.output_ext_wrenches(theta_eq)
+        for i_iter in range(self.n_joints):
+            self.joints[i_iter].Fx_ext = Fx_ext[i_iter]
+            self.joints[i_iter].Fy_ext = Fy_ext[i_iter]
+            self.joints[i_iter].M_ext = M_ext[i_iter]
 
 
     # method that updates the state of the finger given the flexor tendon lengths

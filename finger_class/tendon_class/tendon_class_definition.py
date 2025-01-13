@@ -38,10 +38,12 @@ class Tendon:
 
     #method to update the tendon state given the tension
     def update_given_tension(self,new_tension):
-        if new_tension>0:
+        if new_tension>=0:
             self.tension = new_tension
         else:
-            raise ValueError("Error: tendon {self.name} tension set to negative value")
+            print(self.name)
+            print(new_tension)
+            raise ValueError(f"Error: tendon {self.name} tension set to negative value")
         
         if self.inf_stiff==0:
             self.length = self.length_0 + self.tension/self.elastic_const
@@ -52,7 +54,7 @@ class Tendon:
         if new_length_0>0:
             self.length_0 = new_length_0
         else:
-            raise ValueError("Error: tendon {self.name} rest length set to negative value")
+            raise ValueError(f"Error: tendon {self.name} rest length set to negative value")
         
         if self.inf_stiff==0:
             self.tension = self.elastic_const*(self.length - self.length_0)
@@ -69,7 +71,7 @@ class Tendon:
         if (new_length-self.length_0)>0:
             self.length = new_length
         else:
-            raise ValueError("Error: tendon {self.name} subject to buckling")
+            raise ValueError(f"Error: tendon {self.name} subject to buckling")
         
         if self.inf_stiff==0:
             self.tension = self.elastic_const*(self.length - self.length_0)
