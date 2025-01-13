@@ -10,6 +10,7 @@ from .pulley_class.pulley_class_definition import Pulley
 # import the necessary libraries
 import numpy as np
 from math import atan2, sqrt
+from scipy.optimize import least_squares
 
 class Finger:
 
@@ -261,6 +262,24 @@ class Finger:
         
         return lengths
     
+    def output_spring_force(self,theta=None):
+        
+        #output preallocation
+        spring_force = [0] * self.n_springs
+
+        #we calculate the change of length in the tendons
+        lengths = self.output_tendon_lengths(theta)
+        delta_lengths = [0] * self.n_tendons
+        for i_iter in range(self.n_tendons):
+            delta_lengths[i_iter] = lengths[i_iter] - self.tendons[i_iter].length
+
+        #we calculate the tensions in the springs given the change of length in the tendons
+        for i_iter in range(self.n_springs):
+            length_spring = self.springs[i_iter].l + delta_lengths[self.map_spring_to_tendon[i_iter]]
+            spring_force[i_iter] = self.springs[i_iter].output_force(length_spring)
+        
+        return spring_force
+    
 
 
     #method that changes the state of the finger in order to reach equilibrium
@@ -274,7 +293,7 @@ class Finger:
         theta = variables[0:self.n_joints]
         flexor_tendons_tensions = variables[self.n_joints:(self.n_joints+self.n_pulleys)]
 
-        # we calculate the state of the system according to the variables
+        # we calculate the state of the system according to the tentative variables
         lengths = self.output_tendon_lengths(theta)
         delta_lengths = [0] * self.n_tendons
         for i_iter in range(self.n_tendons):
@@ -320,3 +339,21 @@ class Finger:
         residuals = torques + delta_lengths_flexor
 
         return np.array(residuals)
+    
+
+    # we define the method that establishes the equilibrium of the finger by updating the object
+    def finger_equilibrium(self):
+
+        # Initial guess for the variables (joint angle and flexor tendon tension)
+        initial_guess = np.zeros(self.n_joints + self.n_pulleys)
+
+        # Solve for equilibrium using least_squares
+        result = least_squares(self.finger_equations, initial_guess)
+
+        # we extract the equilibrium variables
+        theta_eq = result[0:self.n_joints]
+        flexor_tendons_tensions = result[self.n_joints:(self.n_joints+self.n_pulleys)]
+
+        # we update the object
+
+
