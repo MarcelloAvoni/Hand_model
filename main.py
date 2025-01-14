@@ -20,7 +20,7 @@ if __name__ == "__main__":
     k_tendons = [0,0,0,0]
     l_springs = [1,1]
     l_0_springs = [0,0]
-    k_springs = [100,100]
+    k_springs = [1,1]
     pulley_radius_functions = [lambda x: 1,lambda x: 1]
     tendon_joint_interface = [["e","n"],["t","e"],["f","n"],["f","f"]]
     tendon_spring_interface = [[1,0],[0,1],[0,0],[0,0]]
@@ -35,5 +35,4 @@ if __name__ == "__main__":
     print("angles")
     print(finger.joints[0].theta)
     print(finger.joints[1].theta)
-
 
