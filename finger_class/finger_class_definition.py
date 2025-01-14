@@ -204,6 +204,13 @@ class Finger:
                                           length=lengths[i_iter],
                                           tension=tensions[i_iter]
                                           )
+            
+        #we initialize joints tensions which will be used for equilibrium scaling
+        T_f,T_t,T_e = self.output_joint_tensions()
+        for i_iter in range(self.n_joints):
+            self.joints[i_iter].T_f = T_f[i_iter]
+            self.joints[i_iter].T_t = T_t[i_iter]
+            self.joints[i_iter].T_e = T_e[i_iter]
         
         # once the finger is created we can compute the initial tension of the flexor tendons
         # by solving it as an equilibrium problem
@@ -402,15 +409,29 @@ class Finger:
 
 
     #method that computes the equilibrium of the finger
-    def finger_equations(self,variables):
+    def finger_equations(self,variables,scale_factors):
 
         # check on dimensionality
         if (len(variables) != (self.n_joints + self.n_pulleys)):
             raise ValueError("The number of variables must match the number of joints and flexor tendons")
         
         # we extract the variables
-        theta = variables[0:self.n_joints]
-        flexor_tendons_tensions = variables[self.n_joints:(self.n_joints+self.n_pulleys)]
+        scaled_theta = variables[0:self.n_joints]
+        scale_factor_theta = scale_factors[0:self.n_joints]
+
+        scaled_flexor_tendons_tensions = variables[self.n_joints:(self.n_joints+self.n_pulleys)]
+        scale_factor_flexor_tendons_tensions = scale_factors[self.n_joints:(self.n_joints+self.n_pulleys)]
+
+        # we de-scale the variables
+        theta = [0] * self.n_joints
+        for i_iter in range(self.n_joints):
+            theta[i_iter] = scaled_theta[i_iter] * scale_factor_theta[i_iter]
+
+        
+        
+        flexor_tendons_tensions = [0] * self.n_pulleys
+        for i_iter in range(self.n_pulleys):
+            flexor_tendons_tensions[i_iter] = scaled_flexor_tendons_tensions[i_iter] * scale_factor_flexor_tendons_tensions[i_iter]
 
         # we calculate the spring forces according to the state variables
         spring_forces = self.output_spring_forces(theta)
@@ -436,6 +457,10 @@ class Finger:
         
         torques = self.output_torques(theta,T_f,T_t,T_e,p_x,p_y,Fx_ext,Fy_ext,M_ext)
 
+        # we scale the torques
+        scaled_torques = [0] * self.n_joints
+        for i_iter in range(self.n_joints):
+            scaled_torques[i_iter] = torques[i_iter] / (self.joints[i_iter].T_e*self.joints[i_iter].r)
 
         #we compute the residuals on flexor tendon lengths
         lengths = self.output_tendon_lengths(theta)
@@ -443,9 +468,13 @@ class Finger:
         for i_iter in range(self.n_pulleys):
             delta_lengths_flexor[i_iter] = lengths[self.map_pulley_to_tendon[i_iter]] - self.tendons[i_iter].length
 
+        # we scale the residuals on flexor tendon lengths
+        scaled_delta_lengths_flexor = [0] * self.n_pulleys
+        for i_iter in range(self.n_pulleys):
+            scaled_delta_lengths_flexor[i_iter] = delta_lengths_flexor[i_iter] / self.tendons[self.map_pulley_to_tendon[i_iter]].length
 
         #we compute the residuals
-        residuals =  torques + delta_lengths_flexor
+        residuals =  scaled_torques + scaled_delta_lengths_flexor
 
         return np.array(residuals)
     
@@ -457,22 +486,37 @@ class Finger:
         if initial_guess is None:
             initial_guess = np.zeros(self.n_joints + self.n_pulleys)
 
-        #we define bounds for the variables  TO BE REFINED!!!!
-        lower_bounds = np.zeros(self.n_joints + self.n_pulleys)
-        upper_bounds = np.inf * np.ones(self.n_joints + self.n_pulleys)
+        # we define the scaling factors
+        scale_factors_theta = (np.pi/2) * np.ones(self.n_joints)
+        scale_factors_flexor_tendons_tensions = self.springs[0].F * np.ones(self.n_pulleys)
+        scale_factors = np.concatenate((scale_factors_theta,scale_factors_flexor_tendons_tensions))
+
+        #we define bounds for the variables
+        lower_bounds_theta = - (np.pi/2) * np.ones(self.n_joints)
+        upper_bounds_theta =  (np.pi/2) * np.ones(self.n_joints)
+        lower_bounds_flexor_tensions = 0 * np.ones(self.n_pulleys)
+        upper_bounds_flexor_tensions = np.inf * np.ones(self.n_pulleys)
+        lower_bounds = np.concatenate((lower_bounds_theta,lower_bounds_flexor_tensions))
+        upper_bounds = np.concatenate((upper_bounds_theta,upper_bounds_flexor_tensions))
 
         # Solve for equilibrium using least_squares
         result = least_squares(self.finger_equations,
                                initial_guess,
+                               args=(scale_factors,),
                                bounds=(lower_bounds, upper_bounds),
                                loss='linear',
-                               ftol=5e-16,
-                               xtol=5e-16,
-                               gtol=5e-16)
+                               ftol=2.5e-16,
+                               xtol=2.5e-16,
+                               gtol=2.5e-16)
 
         # we extract the equilibrium variables
-        theta_eq = result.x[0:self.n_joints]
-        flexor_tendons_tensions_eq = result.x[self.n_joints:(self.n_joints+self.n_pulleys)]
+        theta_eq = [0] * self.n_joints
+        for i_iter in range(self.n_joints):
+            theta_eq[i_iter] = result.x[i_iter] * scale_factors[i_iter]
+        
+        flexor_tendons_tensions_eq = [0] * self.n_pulleys
+        for i_iter in range(self.n_pulleys):
+            flexor_tendons_tensions_eq[i_iter] = result.x[self.n_joints + i_iter] * scale_factors[self.n_joints + i_iter]
 
         # now we update the object
 
