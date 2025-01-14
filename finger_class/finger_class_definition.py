@@ -477,9 +477,6 @@ class Finger:
     # we define the method that establishes the equilibrium of the finger by updating the object
     def finger_equilibrium(self,initial_guess=None):
 
-        # Initial guess for the variables (joint angle and flexor tendon tension)
-        if initial_guess is None:
-            initial_guess = np.zeros(self.n_joints + self.n_pulleys)
 
         # we define the scaling factors for the input
         input_scale_factors_theta = (np.pi/2) * np.ones(self.n_joints)
@@ -493,24 +490,31 @@ class Finger:
 
 
         #we define bounds for the variables
-        lower_bounds_theta = -1 * np.ones(self.n_joints)
-        upper_bounds_theta = np.ones(self.n_joints)
+        lower_bounds_theta = -(1 + 1e-8) * np.ones(self.n_joints)
+        upper_bounds_theta = (1 + 1e-8) * np.ones(self.n_joints)
         lower_bounds_flexor_tensions = 0 * np.ones(self.n_pulleys)
         upper_bounds_flexor_tensions = np.inf * np.ones(self.n_pulleys)
         lower_bounds = np.concatenate((lower_bounds_theta,lower_bounds_flexor_tensions))
         upper_bounds = np.concatenate((upper_bounds_theta,upper_bounds_flexor_tensions))
 
+        # Initial guess for the variables (joint angle and flexor tendon tension)
+        scaled_initial_guess = np.zeros(self.n_joints + self.n_pulleys)
+        if(initial_guess is not None):
+            for i_iter in range(self.n_joints + self.n_pulleys):
+                scaled_initial_guess[i_iter] = initial_guess[i_iter] / input_scale_factors[i_iter]
+
         # Solve for equilibrium using least_squares
         result = least_squares(self.finger_equations,
-                               initial_guess,
+                               scaled_initial_guess,
                                args=(input_scale_factors,output_scale_factors,),
                                bounds=(lower_bounds, upper_bounds),
                                loss='linear',
-                               ftol=1e-15,
-                               xtol=1e-15,
-                               gtol=1e-15,
+                               ftol=3e-16,
+                               xtol=3e-16,
+                               gtol=3e-16,
                                max_nfev=10000
                             )
+
 
         # we extract the equilibrium variables
         theta_eq = [0] * self.n_joints
@@ -566,17 +570,17 @@ class Finger:
 
 
     # method that updates the state of the finger given the flexor tendon lengths
-    def update_given_flexor_length(self,length_new):
+    def update_given_flexor_length(self,length_new,initial_guess=None):
 
         #we extract current state to obtain the initial guess
-        theta = [0] * self.n_joints
-        flexor_tendons_tensions = [0] * self.n_pulleys
-        for i_iter in range(self.n_joints):
-            theta[i_iter] = self.joints[i_iter].theta
-        for i_iter in range(self.n_pulleys):
-            flexor_tendons_tensions[i_iter] = self.tendons[self.map_pulley_to_tendon[i_iter]].tension
-
-        initial_guess = theta + flexor_tendons_tensions
+        if initial_guess is None:
+            theta = [0] * self.n_joints
+            flexor_tendons_tensions = [0] * self.n_pulleys
+            for i_iter in range(self.n_joints):
+                theta[i_iter] = self.joints[i_iter].theta
+            for i_iter in range(self.n_pulleys):
+                flexor_tendons_tensions[i_iter] = self.tendons[self.map_pulley_to_tendon[i_iter]].tension
+            initial_guess = theta + flexor_tendons_tensions
 
         # we update the flexor lengths
         for i_iter in range(self.n_pulleys):

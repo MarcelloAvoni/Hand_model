@@ -36,3 +36,17 @@ if __name__ == "__main__":
     print(finger.joints[0].theta)
     print(finger.joints[1].theta)
 
+    finger.update_given_flexor_length([1,1 + 2])
+    finger.finger_equilibrium()
+    print("tendon tensions")
+    print(finger.tendons[0].tension)
+    print(finger.tendons[1].tension)
+    print(finger.tendons[2].tension)
+    print(finger.tendons[3].tension)
+    print("angles")
+    print(finger.joints[0].theta)
+    print(finger.joints[1].theta)
+
+
+
+
