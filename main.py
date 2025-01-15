@@ -1,5 +1,10 @@
+
+# importing libraries
+import matplotlib as plt
 import numpy as np
 from scipy.optimize import least_squares
+
+#importing classes
 from finger_class.finger_class_definition import Finger
 
 
@@ -41,18 +46,36 @@ if __name__ == "__main__":
     print("Precision")
     print(finger.error)
 
-    finger.update_given_pulley_angle(2 - 0.58578643)
-    print("tendon tensions")
-    print(finger.tendons[0].tension)
-    print(finger.tendons[1].tension)
-    print(finger.tendons[2].tension)
-    print(finger.tendons[3].tension)
-    print("angles")
-    print(finger.joints[0].theta)
-    print(finger.joints[1].theta)
-    print(finger.joints[2].theta)
-    print("Tendon Lenghts")
-    print(finger.tendons[2].length)
-    print(finger.tendons[3].length)
-    print("Precision")
-    print(finger.error)
+    # we now test the finger for multiple pulley angles and plot the results
+    n_simulations = 100
+    pulley_angles = np.linspace(0,np.pi/2,n_simulations)
+
+    # preallocate arrays for results
+    joint_angles = np.zeros((n_simulations,finger.n_joints))
+    tendon_tensions = np.zeros((n_simulations,finger.n_tendons))
+    motor_torque = np.zeros(n_simulations)
+    errors = np.zeros(n_simulations)
+
+
+
+    # we run the simulations
+    for i_iter in range(n_simulations):
+        
+        finger.update_given_pulley_angle(pulley_angles[i_iter])
+        
+        for j_iter in range(finger.n_joints):
+            joint_angles[i_iter,j_iter] = finger.joints[j_iter].theta
+        
+        for j_iter in range(finger.n_tendons):
+            tendon_tensions[i_iter,j_iter] = finger.tendons[j_iter].tension
+
+        motor_torque[i_iter] = finger.motor_torque
+        
+        errors[i_iter] = finger.error
+
+    # we plot the results
+    
+
+
+
+
