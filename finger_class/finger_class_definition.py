@@ -214,6 +214,7 @@ class Finger:
         
         # once the finger is created we can compute the initial tension of the flexor tendons
         # by solving it as an equilibrium problem
+        self.error = 0              # parameter that stores the error of the equilibrium
         self.finger_equilibrium()
 
 
@@ -567,6 +568,11 @@ class Finger:
             self.joints[i_iter].Fx_ext = Fx_ext[i_iter]
             self.joints[i_iter].Fy_ext = Fy_ext[i_iter]
             self.joints[i_iter].M_ext = M_ext[i_iter]
+
+        # we update the equilibrium error
+        self.error = result.cost
+    
+
 
 
     # method that updates the state of the finger given the flexor tendon lengths

@@ -8,25 +8,27 @@ from finger_class.finger_class_definition import Finger
 if __name__ == "__main__":
     # Create an instance of the Finger class with dummy data for a double joint finger
     name = "TestFinger"
-    r_joints = [1,1]  # Single joint
+    r_joints = [1,1,1]  # Single joint
     r_tip = 1
-    L_phalanxes = [5,5]
-    l_a = [0,0]
-    l_b = [0,0]
+    L_phalanxes = [5,5,5]
+    l_a = [0,0,0]
+    l_b = [0,0,0]
     b_a_metacarpal = 1
-    l_c = [0,0]
-    l_d = [0,0]
+    l_c = [0,0,0]
+    l_d = [0,0,0]
     inf_stiff_tendons = [1,1,1,1]
     k_tendons = [0,0,0,0]
     l_springs = [1,1]
     l_0_springs = [0,0]
     k_springs = [1,1]
-    pulley_radius_functions = [lambda x: 1,lambda x: 2]
-    tendon_joint_interface = [["e","n"],["t","e"],["f","n"],["f","f"]]
+    pulley_radius_functions = [lambda x: 2,lambda x: 2.1]
+    tendon_joint_interface = [["e","t","e"],["t","e","n"],["f","f","n"],["f","f","f"]]
     tendon_spring_interface = [[1,0],[0,1],[0,0],[0,0]]
     tendon_pulley_interface = [[0,0],[0,0],[1,0],[0,1]]
 
     finger = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
+    
+    print("Initial State")
     print("tendon tensions")
     print(finger.tendons[0].tension)
     print(finger.tendons[1].tension)
@@ -35,8 +37,9 @@ if __name__ == "__main__":
     print("angles")
     print(finger.joints[0].theta)
     print(finger.joints[1].theta)
+    print(finger.joints[2].theta)
 
-    finger.update_given_pulley_angle(2 - 0.58578643)
+    finger.update_given_pulley_angle(0.5*(2 - 0.58578643))
     print("tendon tensions")
     print(finger.tendons[0].tension)
     print(finger.tendons[1].tension)
@@ -45,6 +48,7 @@ if __name__ == "__main__":
     print("angles")
     print(finger.joints[0].theta)
     print(finger.joints[1].theta)
+    print(finger.joints[2].theta)
     print("Tendon Lenghts")
     print(finger.tendons[2].length)
     print(finger.tendons[3].length)
