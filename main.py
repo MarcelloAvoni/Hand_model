@@ -21,7 +21,7 @@ if __name__ == "__main__":
     l_springs = [1,1]
     l_0_springs = [0,0]
     k_springs = [1,1]
-    pulley_radius_functions = [lambda x: 1,lambda x: 1]
+    pulley_radius_functions = [lambda x: 1,lambda x: 2]
     tendon_joint_interface = [["e","n"],["t","e"],["f","n"],["f","f"]]
     tendon_spring_interface = [[1,0],[0,1],[0,0],[0,0]]
     tendon_pulley_interface = [[0,0],[0,0],[1,0],[0,1]]
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     print(finger.joints[0].theta)
     print(finger.joints[1].theta)
 
-    finger.update_given_flexor_length([1,1+0.58578643])
+    finger.update_given_pulley_angle(2 - 0.58578643)
     print("tendon tensions")
     print(finger.tendons[0].tension)
     print(finger.tendons[1].tension)
@@ -48,7 +48,3 @@ if __name__ == "__main__":
     print("Tendon Lenghts")
     print(finger.tendons[2].length)
     print(finger.tendons[3].length)
-
-
-
-

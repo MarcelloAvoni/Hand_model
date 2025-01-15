@@ -590,6 +590,46 @@ class Finger:
         self.finger_equilibrium(initial_guess)
 
 
+
+    #we define a method that updates the state of the finger given an angular position of the pulleys
+    def update_given_pulley_angle(self,angular_position):
+        
+        # we compute the rolled lengths of the tendons
+        rolled_lengths = [0] * self.n_pulleys
+        for i_iter in range(self.n_pulleys):
+            rolled_lengths[i_iter] = self.pulleys[i_iter].rolled_length
+        
+        #first we rotate the pulleys
+        for i_iter in range(self.n_pulleys):
+            self.pulleys[i_iter].rotate(angular_position)
+
+        #we compute the rolled lengths increment
+        rolled_lengths_increment = [0] * self.n_pulleys
+        for i_iter in range(self.n_pulleys):
+            rolled_lengths_increment[i_iter] = self.pulleys[i_iter].rolled_length - rolled_lengths[i_iter]
+
+        #we update the tendon lengths
+        new_lengths = [0] * self.n_pulleys
+        for i_iter in range(self.n_pulleys):
+            new_lengths[i_iter] = self.tendons[self.map_pulley_to_tendon[i_iter]].length - rolled_lengths_increment[i_iter]
+
+        #we extract current state to obtain the initial guess
+        theta = [0] * self.n_joints
+        flexor_tendons_tensions = [0] * self.n_pulleys
+        
+        for i_iter in range(self.n_joints):
+            theta[i_iter] = self.joints[i_iter].theta
+        
+        for i_iter in range(self.n_pulleys):
+            flexor_tendons_tensions[i_iter] = self.tendons[self.map_pulley_to_tendon[i_iter]].tension
+
+        initial_guess = theta + flexor_tendons_tensions
+
+        # we update the state of the finger
+        self.update_given_flexor_length(new_lengths,initial_guess)
+
+
+
         
 
     

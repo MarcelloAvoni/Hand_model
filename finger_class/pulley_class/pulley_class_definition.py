@@ -26,8 +26,8 @@ class Pulley:
         angle_incomplete_turn = (new_angular_position - self.angular_position) % (2 * pi)
 
         # Perform numerical integration to calculate the rolled length increment
-        rolled_length_increment = number_of_turns * quad(self.radius_function, 0, 2*pi)
-        rolled_length_increment += quad(self.radius_function, 0, angle_incomplete_turn)
+        rolled_length_increment = number_of_turns * quad(self.radius_function, 0, 2*pi)[0]
+        rolled_length_increment += quad(self.radius_function, 0, angle_incomplete_turn)[0]
 
         # Update the rolled length and angular position
         self.rolled_length += rolled_length_increment
