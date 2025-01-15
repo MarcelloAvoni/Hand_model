@@ -215,6 +215,7 @@ class Finger:
         # once the finger is created we can compute the initial tension of the flexor tendons
         # by solving it as an equilibrium problem
         self.error = 0              # parameter that stores the error of the equilibrium
+        self.motor_torque = 0       # parameter that stores the motor torque
         self.finger_equilibrium()
 
 
@@ -475,6 +476,21 @@ class Finger:
         return np.array(residuals)
     
 
+    #we define a method to calculate the torque of the motor that actuates the pulleys
+    def output_motor_torque(self):
+
+        motor_torque = 0
+
+        for i_iter in range(self.n_pulleys):
+            motor_torque += self.tendons[self.map_pulley_to_tendon[i_iter]].tension * self.pulleys[i_iter].radius_function(self.pulleys[i_iter].angular_position)
+
+        return motor_torque
+
+
+
+        
+    
+
     # we define the method that establishes the equilibrium of the finger by updating the object
     def finger_equilibrium(self,initial_guess=None):
 
@@ -571,6 +587,9 @@ class Finger:
 
         # we update the equilibrium error
         self.error = result.cost
+
+        # we update the motor torque
+        self.motor_torque = self.output_motor_torque()
     
 
 
