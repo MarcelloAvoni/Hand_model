@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from finger_class.finger_class_definition import Finger
-from plot_functions import plot_results
+from plot_functions.plot_results import plot_results
+from plot_functions.plot_finger import make_animation
+
 
 
 def run_simulation(finger, pulley_angles):
@@ -63,6 +65,9 @@ def main():
 
     # Plot the results
     plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, errors)
+
+    # Plot the finger video
+    make_animation(joint_angles, r_joints, r_tip, L_phalanxes)
 
 if __name__ == "__main__":
     main()

@@ -38,6 +38,3 @@ def plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, err
     ax.legend()
     ax.set_title('Error vs Pulley Angle')
     ax.grid(True)
-
-    # Show all plots
-    plt.show()
