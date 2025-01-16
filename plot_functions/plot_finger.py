@@ -84,7 +84,8 @@ def plot_finger(ax,joint_angles,r_joints,r_tip,L_phalanxes):
     l_max = 0
     for i_iter in range(len(L_phalanxes)):
         l_max += L_phalanxes[i_iter]
-    l_max = l_max + r_tip
+        
+    l_max = l_max + 2*r_tip
     ax.set_xlim(-r_joints[0],l_max)
     ax.set_ylim(-r_joints[0],l_max)
 

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from finger_class.finger_class_definition import Finger
 from plot_functions.plot_results import plot_results
 from plot_functions.plot_finger import make_animation
+from math import atan2, cos
 
 
 
@@ -34,22 +35,63 @@ def run_simulation(finger, pulley_angles):
 
 
 def main():
-    # Create an instance of the Finger class with dummy data for a double joint finger
+    
+    
+    
+    # we initialize the finger parameters
     name = "TestFinger"
+    f_1 = 0.5
+    f_2 = 0.5*0.5
+    p_r = 0.001
+
+
     r_joints = [0.006, 0.005, 0.004]  # Three joints
-    r_tip = 0.004
+    r_tip = 0.003
     L_phalanxes = [0.05, 0.03, 0.02]
-    l_a = [0, 0, 0]
+    b_a_metacarpal = 0.006
+    l_a = [1, 0, 0]
     l_b = [0, 0, 0]
-    b_a_metacarpal = 1
     l_c = [0, 0, 0]
     l_d = [0, 0, 0]
+
+    for i_iter in range(len(r_joints)):
+
+        if (i_iter == len(r_joints) - 1):
+
+            r_1 = r_joints[i_iter]
+            r_2 = r_tip
+
+        else:
+            r_1 = r_joints[i_iter]
+            r_2 = r_joints[i_iter + 1]
+
+        beta = atan2(2*(r_1-r_2),(L_phalanxes[i_iter]-r_1-r_2))
+
+        if (i_iter == 0):
+            l_a[i_iter] = 2*f_1*r_1
+        elif(i_iter==2):
+            l_a[i_iter] = (0.004 + 2*f_2*r_1)*cos(beta)
+        else:
+            l_a[i_iter] = (2*f_2*r_1)*cos(beta)
+
+        l_b[i_iter] = f_1*r_1*cos(beta)
+
+        if (i_iter == 0):
+            l_c[i_iter] = p_r
+        else:
+            l_c[i_iter] = -p_r
+
+        l_d[i_iter] = -p_r
+
+
+
+
     inf_stiff_tendons = [1, 1, 1, 1]
     k_tendons = [0, 0, 0, 0]
-    l_springs = [0.001, 0.001]
+    l_springs = [0.000001, 0.0000001]
     l_0_springs = [0, 0]
     k_springs = [2140, 2140]
-    pulley_radius_functions = [lambda x: 0.01, lambda x: 0.012]
+    pulley_radius_functions = [lambda x: 0.0095, lambda x: 0.01]
     tendon_joint_interface = [["e", "t", "e"], ["t", "e", "n"], ["f", "f", "n"], ["f", "f", "f"]]
     tendon_spring_interface = [[1, 0], [0, 1], [0, 0], [0, 0]]
     tendon_pulley_interface = [[0, 0], [0, 0], [1, 0], [0, 1]]
@@ -58,7 +100,7 @@ def main():
 
     # Simulation parameters
     num_simulations = 100
-    pulley_angles = np.linspace(0, np.pi / 2, num_simulations)
+    pulley_angles = np.linspace(0.1*np.pi / 6, np.pi / 4, num_simulations)
 
     # Run the simulation
     joint_angles, tendon_tensions, motor_torque, errors = run_simulation(finger, pulley_angles)

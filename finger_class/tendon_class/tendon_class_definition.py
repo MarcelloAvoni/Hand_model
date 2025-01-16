@@ -38,7 +38,7 @@ class Tendon:
 
     #method to update the tendon state given the tension
     def update_given_tension(self,new_tension):
-        if new_tension>=-100:
+        if new_tension>=0:
             self.tension = new_tension
         else:
             print(self.name)
