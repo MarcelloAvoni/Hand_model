@@ -508,7 +508,7 @@ class Finger:
 
         #we define bounds for the variables
         lower_bounds_theta = -(1 + 1e-8) * np.ones(self.n_joints)
-        upper_bounds_theta = (1 + 1e-8) * np.ones(self.n_joints)
+        upper_bounds_theta = (2 + 1e-8) * np.ones(self.n_joints)
         lower_bounds_flexor_tensions = 0 * np.ones(self.n_pulleys)
         upper_bounds_flexor_tensions = np.inf * np.ones(self.n_pulleys)
         lower_bounds = np.concatenate((lower_bounds_theta,lower_bounds_flexor_tensions))

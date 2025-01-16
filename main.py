@@ -36,9 +36,9 @@ def run_simulation(finger, pulley_angles):
 def main():
     # Create an instance of the Finger class with dummy data for a double joint finger
     name = "TestFinger"
-    r_joints = [1, 1, 1]  # Three joints
-    r_tip = 1
-    L_phalanxes = [5, 5, 5]
+    r_joints = [0.006, 0.005, 0.004]  # Three joints
+    r_tip = 0.004
+    L_phalanxes = [0.05, 0.03, 0.02]
     l_a = [0, 0, 0]
     l_b = [0, 0, 0]
     b_a_metacarpal = 1
@@ -46,10 +46,10 @@ def main():
     l_d = [0, 0, 0]
     inf_stiff_tendons = [1, 1, 1, 1]
     k_tendons = [0, 0, 0, 0]
-    l_springs = [1, 1]
+    l_springs = [0.001, 0.001]
     l_0_springs = [0, 0]
-    k_springs = [1, 1]
-    pulley_radius_functions = [lambda x: 1, lambda x: 1.2]
+    k_springs = [2140, 2140]
+    pulley_radius_functions = [lambda x: 0.01, lambda x: 0.012]
     tendon_joint_interface = [["e", "t", "e"], ["t", "e", "n"], ["f", "f", "n"], ["f", "f", "f"]]
     tendon_spring_interface = [[1, 0], [0, 1], [0, 0], [0, 0]]
     tendon_pulley_interface = [[0, 0], [0, 0], [1, 0], [0, 1]]
