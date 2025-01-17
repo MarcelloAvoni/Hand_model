@@ -106,7 +106,7 @@ def main():
     joint_angles, tendon_tensions, motor_torque, errors = run_simulation(finger, pulley_angles)
 
     # Plot the results
-    plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, errors)
+    plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
 
     # Plot the finger video
     make_animation(joint_angles, r_joints, r_tip, L_phalanxes)

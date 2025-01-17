@@ -129,11 +129,15 @@ def plot_update(frame,ax,joint_angles,r_joints,r_tip,L_phalanxes):
     plot_finger(ax,joint_angles[frame,:],r_joints,r_tip,L_phalanxes)
 
 
-def make_animation(joint_angles,r_joints,r_tip,L_phalanxes):
+def make_animation(joint_angles,r_joints,r_tip,L_phalanxes,save_path=None):
 
     # we iterate over the joints to print the finger
     fig, ax = plt.subplots()
 
 
     ani = FuncAnimation(fig,plot_update,frames=len(joint_angles),fargs=(ax,joint_angles,r_joints,r_tip,L_phalanxes),repeat=False)
+    
+    if save_path:
+        ani.save(save_path, writer='ffmpeg', fps=30)
+    
     plt.show()
