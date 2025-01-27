@@ -47,7 +47,7 @@ def main():
 
     r_joints = [0.006, 0.005, 0.004]  # Three joints
     r_tip = 0.003
-    L_phalanxes = [0.05, 0.03, 0.02]
+    L_phalanxes = [0.04, 0.03, 0.02]
     b_a_metacarpal = 0.006
     l_a = [1, 0, 0]
     l_b = [0, 0, 0]
@@ -88,10 +88,10 @@ def main():
 
     inf_stiff_tendons = [1, 1, 1, 1]
     k_tendons = [0, 0, 0, 0]
-    l_springs = [0.000001, 0.0000001]
+    l_springs = [0.003, 0.003]
     l_0_springs = [0, 0]
-    k_springs = [2140, 2140]
-    pulley_radius_functions = [lambda x: 0.0095, lambda x: 0.01]
+    k_springs = [320, 320]
+    pulley_radius_functions = [lambda x: 0.01, lambda x: 0.0125]
     tendon_joint_interface = [["e", "t", "e"], ["t", "e", "n"], ["f", "f", "n"], ["f", "f", "f"]]
     tendon_spring_interface = [[1, 0], [0, 1], [0, 0], [0, 0]]
     tendon_pulley_interface = [[0, 0], [0, 0], [1, 0], [0, 1]]
@@ -100,7 +100,7 @@ def main():
 
     # Simulation parameters
     num_simulations = 100
-    pulley_angles = np.linspace(0.1*np.pi / 6, np.pi / 4, num_simulations)
+    pulley_angles = np.linspace(0, np.pi / 2, num_simulations)
 
     # Run the simulation
     joint_angles, tendon_tensions, motor_torque, errors = run_simulation(finger, pulley_angles)
