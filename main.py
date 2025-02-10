@@ -72,7 +72,7 @@ def main():
         else:
             l_a[i_iter] = (2*f_2*r_1)*cos(beta)
 
-        l_b[i_iter] = f_1*r_1*cos(beta)
+        l_b[i_iter] = 2*f_1*r_1*cos(beta)
 
         if (i_iter == 0):
             l_c[i_iter] = p_r
@@ -86,7 +86,7 @@ def main():
 
     inf_stiff_tendons = [1, 1, 1]
     k_tendons = [0, 0, 0]
-    l_springs = [0.003, 0.003]
+    l_springs = [0.0001, 0.00001]
     l_0_springs = [0, 0]
     k_springs = [320, 320]
     pulley_radius_functions = [lambda x: 0.01]
