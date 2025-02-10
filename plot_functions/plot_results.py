@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,save_path=None):
+def plot_results(finger, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,save_path=None):
     # Plot joint angles
     fig, ax = plt.subplots()
     for j in range(joint_angles.shape[1]):
@@ -11,7 +11,7 @@ def plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, err
     ax.set_title('Joint Angles vs Pulley Angle')
     ax.grid(True)
     if save_path:
-        fig.savefig(f"{save_path}/joint_angles.png")
+        fig.savefig(f"{save_path}/joint_angles_{finger.name}.png")
     plt.show()
     plt.close(fig)
 
@@ -25,7 +25,7 @@ def plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, err
     ax.set_title('Tendon Tensions vs Pulley Angle')
     ax.grid(True)
     if save_path:
-        fig.savefig(f"{save_path}/tendon_tensions.png")
+        fig.savefig(f"{save_path}/tendon_tensions_{finger.name}.png")
     plt.show()
     plt.close(fig)
 
@@ -38,7 +38,7 @@ def plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, err
     ax.set_title('Motor Torque vs Pulley Angle')
     ax.grid(True)
     if save_path:
-        fig.savefig(f"{save_path}/motor_torque.png")
+        fig.savefig(f"{save_path}/motor_torque_{finger.name}.png")
     plt.show()
     plt.close(fig)
 
@@ -51,6 +51,6 @@ def plot_results(pulley_angles, joint_angles, tendon_tensions, motor_torque, err
     ax.set_title('Error vs Pulley Angle')
     ax.grid(True)
     if save_path:
-        fig.savefig(f"{save_path}/error.png")
+        fig.savefig(f"{save_path}/error_{finger.name}.png")
     plt.show()
     plt.close(fig)
