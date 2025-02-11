@@ -179,6 +179,36 @@ def main():
     # Plot the finger video
     make_animation(joint_angles, r_joints, r_tip, L_phalanxes)
 
+def debug_attempt():
+
+    #we define a simple finger to be used for debugging
+        # FINGER WITH 2 PHALANGES TEST
+    # we initialize the finger parameters
+    name = "debugging_finger"
+
+    r_joints = [1,1]
+    r_tip = 1
+    L_phalanxes = [5, 5]
+    b_a_metacarpal = 1
+    l_a = [0, 0]
+    l_b = [0, 0]
+    l_c = [0, 0]
+    l_d = [0, 0]
+
+    inf_stiff_tendons = [1, 1, 1, 1]
+    k_tendons = [0, 0, 0, 0]
+    l_springs = [1, 1]
+    l_0_springs = [0, 0]
+    k_springs = [1, 1]
+    pulley_radius_functions = [lambda x: 1, lambda x: 1]
+    tendon_joint_interface = [["e", "n"], ["t", "e"], ["f", "n"], ["f", "f"]]
+    tendon_spring_interface = [[1, 0], [0, 1], [0, 0], [0, 0]]
+    tendon_pulley_interface = [[0, 0], [0, 0], [1, 0], [0, 1]]
+
+    finger = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
+
+
+
 
 if __name__ == "__main__":
-    main()
+    debug_attempt()
