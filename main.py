@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from finger_class.finger_class_definition import Finger
 from plot_functions.plot_results import plot_results
 from plot_functions.plot_finger import make_animation
-from math import atan2, cos
+from math import atan2, sin, cos, pi
 
 
 
@@ -179,7 +179,7 @@ def main():
     # Plot the finger video
     make_animation(joint_angles, r_joints, r_tip, L_phalanxes)
 
-def debug_attempt():
+def debug():
 
     #we define a simple finger to be used for debugging
         # FINGER WITH 2 PHALANGES TEST
@@ -208,7 +208,37 @@ def debug_attempt():
     finger = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
 
 
+    # we try to debug the system
+    print("INITIAL STATE")
+    print()
+    for i_iter in range(finger.n_tendons):
+        print(f'Tendon {finger.tendons[i_iter].name} has {finger.tendons[i_iter].tension} N of Tension and is {finger.tendons[i_iter].length} m long')
+    print()
+
+
+    theta1 = pi/3
+    theta2 = 0
+    l1 = 2 * (1 - sin(theta1/2))
+    l2 = l1 + 2 * (1 - sin(theta2/2))
+
+    finger.update_given_flexor_length([l1,l2])
+
+
+    print("INTERMEDIATE STATE")
+    for i_iter in range(finger.n_tendons):
+        print(f'Tendon {finger.tendons[i_iter].name} has {finger.tendons[i_iter].tension} N of Tension and is {finger.tendons[i_iter].length} m long')
+    print()
+
+    finger.update_given_phalanx_wrenches([-2,-1],[0,0],[2,3])
+
+    print("FINAL STATE")
+    for i_iter in range(finger.n_tendons):
+        print(f'Tendon {finger.tendons[i_iter].name} has {finger.tendons[i_iter].tension} N of Tension and is {finger.tendons[i_iter].length} m long')
+    print()
+
+
+
 
 
 if __name__ == "__main__":
-    debug_attempt()
+    debug()

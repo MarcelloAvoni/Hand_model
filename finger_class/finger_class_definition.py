@@ -698,8 +698,32 @@ class Finger:
         # we update the state of the finger
         self.update_given_flexor_length(new_lengths,initial_guess)
 
+
     # we define a method that updates the state of the finger given the wrench on each phalanx
     # we assume the wrenches on the phalanxes to be expressed in the reference system of the phalanx itself
+    def update_given_phalanx_wrenches(self,Fx,Fy,M):
+
+        # we extract the current state
+        theta = [0] * self.n_joints
+        flexor_tendons_tensions = [0] * self.n_pulleys
+        for i_iter in range(self.n_joints):
+            theta[i_iter] = self.joints[i_iter].theta
+        for i_iter in range(self.n_pulleys):
+            flexor_tendons_tensions[i_iter] = self.tendons[self.map_pulley_to_tendon[i_iter]].tension
+
+        # we update the wrenches on the phalanxes
+        for i_iter in range(self.n_joints):
+            self.Fx_phalanges[i_iter] = Fx[i_iter]
+            self.Fy_phalanges[i_iter] = Fy[i_iter]
+            self.M_phalanges[i_iter] = M[i_iter]
+
+
+        # we define the initial guess
+        initial_guess = theta + flexor_tendons_tensions
+
+        # we update the state of the finger
+        self.finger_equilibrium(initial_guess)
+
 
 
 
