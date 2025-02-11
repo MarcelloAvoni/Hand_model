@@ -216,8 +216,8 @@ def debug():
     print()
 
 
-    theta1 = pi/3
-    theta2 = 0
+    theta1 = pi/2
+    theta2 = pi/2
     l1 = 2 * (1 - sin(theta1/2))
     l2 = l1 + 2 * (1 - sin(theta2/2))
 
@@ -229,7 +229,7 @@ def debug():
         print(f'Tendon {finger.tendons[i_iter].name} has {finger.tendons[i_iter].tension} N of Tension and is {finger.tendons[i_iter].length} m long')
     print()
 
-    finger.update_given_phalanx_wrenches([-2,-1],[0,0],[2,3])
+    finger.update_given_phalanx_wrenches([-1,-2],[-2,-1],[0,1])
 
     print("FINAL STATE")
     for i_iter in range(finger.n_tendons):
