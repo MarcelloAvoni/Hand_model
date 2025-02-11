@@ -127,21 +127,25 @@ class Joint:
     
     
     # Method to transport the total external wrenches to the rolling point of contact of the joint and compute the torque
-    def transport_torques(self,theta=None,p_x=None,p_y=None,Fx_ext=None,Fy_ext=None,M_ext=None):
+    def transport_torques(self,theta=None,p_x=None,p_y=None,Fx_phalanx=None,Fy_phalanx=None,M_phalanx=None,Fx_ext=None,Fy_ext=None,M_ext=None):
 
         if theta is None:
             theta = self.theta
         
-        if all(x is None for x in [p_x,p_y,M_ext,Fx_ext,Fy_ext]):
+        if all(x is None for x in [p_x,p_y,Fx_phalanx,Fy_phalanx,M_phalanx,Fx_ext,Fy_ext,M_ext]):
             p_x = self.p_x
             p_y = self.p_y
+            Fx_phalanx = self.Fx_phalanx
+            Fy_phalanx = self.Fy_phalanx
+            M_phalanx = self.M_phalanx
             Fx_ext = self.Fx_ext
             Fy_ext = self.Fy_ext
             M_ext = self.M_ext
 
 
+
         # torque due to wrench on the phalanx
-        torque_phalanx = -(self.r*cos(theta/2) + self.L_wrench_phalanx*cos(theta-self.gamma_phalanx))*self.Fx_phalanx + (self.r*sin(theta/2) + self.L_wrench_phalanx*sin(theta-self.gamma_phalanx))*self.Fy_phalanx + self.M_phalanx
+        torque_phalanx = -(self.r*cos(theta/2) + self.L_wrench_phalanx*cos(theta-self.gamma_phalanx))*Fx_phalanx + (self.r*sin(theta/2) + self.L_wrench_phalanx*sin(theta-self.gamma_phalanx))*Fy_phalanx + M_phalanx
 
         # torquee due to external wrench
         torque_ext = -p_y*Fx_ext + p_x*Fy_ext + M_ext
@@ -154,7 +158,7 @@ class Joint:
     
 
     # Method to calculate the torque around the rolling point of contact of the joint
-    def joint_torque(self,theta=None,T_f=None,T_t=None,T_e=None,p_x=None,p_y=None,Fx_ext=None,Fy_ext=None,M_ext=None):
+    def joint_torque(self,theta=None,T_f=None,T_t=None,T_e=None,p_x=None,p_y=None,Fx_phalanx=None,Fy_phalanx=None,M_phalanx=None,Fx_ext=None,Fy_ext=None,M_ext=None):
         
         # first we calculate the x and y components of the tendons
         l_f_x, l_f_y = self.l_f_components(theta)
@@ -192,7 +196,7 @@ class Joint:
             
             
         # here we calculate the external torques
-        torque_ext = self.transport_torques(theta,p_x,p_y,Fx_ext,Fy_ext,M_ext)
+        torque_ext = self.transport_torques(theta,p_x,p_y,Fx_phalanx,Fy_phalanx,M_phalanx,Fx_ext,Fy_ext,M_ext)
 
         # total torque
         torque = torque_f + torque_t + torque_e + torque_ext

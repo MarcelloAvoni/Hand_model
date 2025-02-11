@@ -211,6 +211,11 @@ class Finger:
             self.joints[i_iter].T_f = T_f[i_iter]
             self.joints[i_iter].T_t = T_t[i_iter]
             self.joints[i_iter].T_e = T_e[i_iter]
+
+        #we initialize the external wrenches, given in the reference system of the corresponding phalanx
+        self.Fx_phalanges = [0] * self.n_joints
+        self.Fy_phalanges = [0] * self.n_joints
+        self.M_phalanges = [0] * self.n_joints
         
         # once the finger is created we can compute the initial tension of the flexor tendons
         # by solving it as an equilibrium problem
@@ -226,13 +231,13 @@ class Finger:
 
     
     #method that outputs the torques of the finger in the rolling points of contact of the joints
-    def output_torques(self,theta=None,T_f=None,T_t=None,T_e=None,p_x=None,p_y=None,Fx_ext=None,Fy_ext=None,M_ext=None):        
+    def output_torques(self,theta=None,T_f=None,T_t=None,T_e=None,p_x=None,p_y=None,Fx_phalanx=None,Fy_phalanx=None,M_phalanx=None,Fx_ext=None,Fy_ext=None,M_ext=None):        
 
         # output preallocation
         torques = [0] * self.n_joints
 
         for i_iter in range(self.n_joints):
-            torques[i_iter] = self.joints[i_iter].joint_torque(theta[i_iter],T_f[i_iter],T_t[i_iter],T_e[i_iter],p_x[i_iter],p_y[i_iter],Fx_ext[i_iter],Fy_ext[i_iter],M_ext[i_iter])
+            torques[i_iter] = self.joints[i_iter].joint_torque(theta[i_iter],T_f[i_iter],T_t[i_iter],T_e[i_iter],p_x[i_iter],p_y[i_iter],Fx_phalanx[i_iter],Fy_phalanx[i_iter],M_phalanx[i_iter],Fx_ext[i_iter],Fy_ext[i_iter],M_ext[i_iter])
 
         return torques
     
@@ -369,7 +374,7 @@ class Finger:
         return p_x, p_y
     
 
-    #function that outputs the external wrenches in the joints given the wrenchs on the phalanxes
+    #function that outputs the external wrenches in the joints in the reference system of the previous phalanx given the wrenches on the phalanxes in the reference system of the current phalanx
     def output_ext_wrenches(self,theta=None,Fx=None,Fy=None,M=None):
 
         #input check
@@ -377,15 +382,6 @@ class Finger:
             theta = [0] * self.n_joints
             for i_iter in range(self.n_joints):
                 theta[i_iter] = self.joints[i_iter].theta
-
-        if (Fx is None) & (Fy is None) & (M is None):
-            Fx = [0] * self.n_joints
-            Fy = [0] * self.n_joints
-            M = [0] * self.n_joints
-            for i_iter in range(self.n_joints):
-                Fx[i_iter] = self.joints[i_iter].Fx_phalanx
-                Fy[i_iter] = self.joints[i_iter].Fy_phalanx
-                M[i_iter] = self.joints[i_iter].M_phalanx
 
         # output preallocation
         Fx_ext = [0] * self.n_joints
@@ -395,6 +391,9 @@ class Finger:
         # calculate the wrenches position in the joints
         p_x, p_y = self.output_ext_wrench_positions(theta)
 
+        # calculate forces on the phalanxes in tre reference system of the previous phalanx
+        Fx_phalanx, Fy_phalanx, M_phalanx = self.output_phalanx_wrenches(theta,Fx,Fy,M)
+
         # we calculate the external wrenches in the joints
         for i_iter in reversed(range(self.n_joints)):
 
@@ -403,11 +402,49 @@ class Finger:
                 Fy_ext[i_iter] = 0
                 M_ext[i_iter] = 0
             else:
-                Fx_ext[i_iter] = Fx[i_iter+1] + Fx_ext[i_iter+1]
-                Fy_ext[i_iter] = Fy[i_iter+1] + Fy_ext[i_iter+1]
-                M_ext[i_iter] = self.joints[i_iter+1].transport_torques(theta[i_iter+1],p_x[i_iter+1],p_y[i_iter+1],Fx_ext[i_iter+1],Fy_ext[i_iter+1],M_ext[i_iter+1])
+                #here we compute the forces in i_iter system of reference
+                Fx_aux = Fx_phalanx[i_iter+1] + Fx_ext[i_iter+1]
+                Fy_aux = Fy_phalanx[i_iter+1] + Fy_ext[i_iter+1]
+
+                #the external forces need to be expressed in i_iter-1 system of reference
+                Fx_ext[i_iter] = Fx_aux*cos(theta[i_iter]) + Fy_aux*sin(theta[i_iter])
+                Fy_ext[i_iter] = -Fx_aux*sin(theta[i_iter]) + Fy_aux*cos(theta[i_iter])
+                M_ext[i_iter] = self.joints[i_iter+1].transport_torques(theta[i_iter+1],p_x[i_iter+1],p_y[i_iter+1],Fx_phalanx[i_iter+1],Fy_phalanx[i_iter+1],M_phalanx[i_iter+1],Fx_ext[i_iter+1],Fy_ext[i_iter+1],M_ext[i_iter+1])
+
 
         return Fx_ext,Fy_ext,M_ext
+    
+
+    # we define a function that computes the phalanx wrenches in the reference system of the previous phalanx so to update the joints
+    def output_phalanx_wrenches(self,theta=None,Fx=None,Fy=None,M=None):
+
+        if theta is None:
+            theta = [0] * self.n_joints
+            for i_iter in range(self.n_joints):
+                theta[i_iter] = self.joints[i_iter].theta
+        
+        if (Fx is None) & (Fy is None) & (M is None):
+            Fx = [0] * self.n_joints
+            Fy = [0] * self.n_joints
+            M = [0] * self.n_joints
+            for i_iter in range(self.n_joints):
+                Fx[i_iter] = self.Fx_phalanges[i_iter]
+                Fy[i_iter] = self.Fy_phalanges[i_iter]
+                M[i_iter] = self.M_phalanges[i_iter]
+        
+        # output preallocation
+        Fx_phalanx = [0] * self.n_joints
+        Fy_phalanx = [0] * self.n_joints
+        M_phalanx = [0] * self.n_joints
+
+        # we rotate the wrenches in the reference system of the previous phalanx
+        for i_iter in range(self.n_joints):
+            Fx_phalanx[i_iter] = Fx[i_iter]*cos(theta[i_iter]) + Fy[i_iter]*sin(theta[i_iter])
+            Fy_phalanx[i_iter] = -Fx[i_iter]*sin(theta[i_iter]) + Fy[i_iter]*cos(theta[i_iter])
+            M_phalanx[i_iter] = M[i_iter]
+        
+        return Fx_phalanx,Fy_phalanx,M_phalanx
+
 
 
     #method that computes the equilibrium of the finger
@@ -456,8 +493,9 @@ class Finger:
         # we compute torques given by the external wrenches
         p_x, p_y = self.output_ext_wrench_positions(theta)
         Fx_ext,Fy_ext,M_ext = self.output_ext_wrenches(theta)
+        Fx_phalanx,Fy_phalanx,M_phalanx = self.output_phalanx_wrenches(theta)
         
-        torques = self.output_torques(theta,T_f,T_t,T_e,p_x,p_y,Fx_ext,Fy_ext,M_ext)
+        torques = self.output_torques(theta,T_f,T_t,T_e,p_x,p_y,Fx_phalanx,Fy_phalanx,M_phalanx,Fx_ext,Fy_ext,M_ext)
 
         #we compute the residuals on flexor tendon lengths
         lengths = self.output_tendon_lengths(theta)
@@ -585,6 +623,13 @@ class Finger:
             self.joints[i_iter].Fy_ext = Fy_ext[i_iter]
             self.joints[i_iter].M_ext = M_ext[i_iter]
 
+        # we update the phalanx wrenches
+        Fx_phalanx,Fy_phalanx,M_phalanx = self.output_phalanx_wrenches(theta_eq)
+        for i_iter in range(self.n_joints):
+            self.joints[i_iter].Fx_phalanx = Fx_phalanx[i_iter]
+            self.joints[i_iter].Fy_phalanx = Fy_phalanx[i_iter]
+            self.joints[i_iter].M_phalanx = M_phalanx[i_iter]
+
         # we update the equilibrium error
         self.error = result.cost
 
@@ -652,6 +697,10 @@ class Finger:
 
         # we update the state of the finger
         self.update_given_flexor_length(new_lengths,initial_guess)
+
+    # we define a method that updates the state of the finger given the wrench on each phalanx
+    # we assume the wrenches on the phalanxes to be expressed in the reference system of the phalanx itself
+
 
 
 
