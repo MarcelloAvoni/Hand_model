@@ -171,7 +171,7 @@ def main():
     pulley_angles = np.linspace(0, 3 * np.pi / 4, num_simulations)
 
     # Run the simulation
-    joint_angles, tendon_tensions, motor_torque, errors = run_simulation(finger_3, pulley_angles)
+    joint_angles, tendon_tensions, motor_torque, errors = run_simulation(finger_2, pulley_angles)
 
     # Plot the results
     plot_results(finger_2, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
