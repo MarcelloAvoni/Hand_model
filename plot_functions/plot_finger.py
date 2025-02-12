@@ -11,8 +11,6 @@ def rototranslation_given_angle(alpha,x,y,x_o,y_o):
     return x_rot, y_rot
 
 
-
-
 def plot_phalanx(ax,r_1,r_2,L_phalanx,theta,x_o,y_o,alpha):
 
     # we calculate the main points positions in the local reference frame
