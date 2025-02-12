@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from finger_class.finger_class_definition import Finger
-from plot_functions.plot_results import plot_results
-from plot_functions.plot_finger import make_animation
+from utility_functions.plot_functions.plot_results import plot_results
+from utility_functions.plot_functions.plot_finger import make_animation
 from math import atan2, sin, cos, pi
 
 
@@ -182,7 +182,7 @@ def main():
 def debug():
 
     #we define a simple finger to be used for debugging
-        # FINGER WITH 2 PHALANGES TEST
+    # FINGER WITH 2 PHALANGES TEST
     # we initialize the finger parameters
     name = "debugging_finger"
 
