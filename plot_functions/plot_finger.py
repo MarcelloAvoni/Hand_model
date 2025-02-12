@@ -2,11 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 
-def meters_to_points(meters):
-
-    points = meters * 1000 * 72 / 25.4
-
-    return points
 
 def rototranslation_given_angle(alpha,x,y,x_o,y_o):
 
@@ -49,12 +44,12 @@ def plot_phalanx(ax,r_1,r_2,L_phalanx,theta,x_o,y_o,alpha):
     x_2_phalanx_down, y_2_phalanx_down = rototranslation_given_angle(alpha,x_2_phalanx_down,y_2_phalanx_down,x_o,y_o)
 
     # we define 2 circumferences that represent the joints
-    theta = np.linspace(0,2*np.pi,100)
-    x_circ_1 = x_1 + r_1*np.sin(theta)
-    y_circ_1 = y_1 + r_1*np.cos(theta)
+    beta = np.linspace(0,2*np.pi,100)
+    x_circ_1 = x_1 + r_1*np.sin(beta)
+    y_circ_1 = y_1 + r_1*np.cos(beta)
 
-    x_circ_2 = x_2 + r_2*np.sin(theta)
-    y_circ_2 = y_2 + r_2*np.cos(theta)
+    x_circ_2 = x_2 + r_2*np.sin(beta)
+    y_circ_2 = y_2 + r_2*np.cos(beta)
 
     #we overlay lines that represent current phalanx
     ax.plot([x_1,x_2],[y_1,y_2],color='black',linewidth=1,linestyle='--')
