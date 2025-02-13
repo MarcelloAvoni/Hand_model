@@ -3,35 +3,9 @@ import matplotlib.pyplot as plt
 from finger_class.finger_class_definition import Finger
 from utility_functions.plot_functions.plot_results import plot_results
 from utility_functions.plot_functions.plot_finger import make_animation
+from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
 from math import atan2, sin, cos, pi
 
-
-
-def run_simulation(finger, pulley_angles):
-    num_simulations = len(pulley_angles)
-    
-    # Preallocate arrays for results
-    joint_angles = np.zeros((num_simulations, finger.n_joints))
-    tendon_tensions = np.zeros((num_simulations, finger.n_tendons))
-    motor_torque = np.zeros(num_simulations)
-    errors = np.zeros(num_simulations)
-
-    for i in range(num_simulations):
-        # Update the pulley angle
-        finger.update_given_pulley_angle(pulley_angles[i])
-        
-        # Store the joint angles and tendon tensions
-        for j in range(finger.n_joints):
-            joint_angles[i, j] = finger.joints[j].theta
-        
-        for j in range(finger.n_tendons):
-            tendon_tensions[i, j] = finger.tendons[j].tension
-        
-        # Store the motor torque and error
-        motor_torque[i] = finger.motor_torque
-        errors[i] = finger.error
-
-    return joint_angles, tendon_tensions, motor_torque, errors
 
 
 def main():
@@ -101,7 +75,7 @@ def main():
     pulley_angles = np.linspace(0, 3 * np.pi / 4, num_simulations)
 
     # Run the simulation
-    joint_angles, tendon_tensions, motor_torque, errors = run_simulation(finger_3, pulley_angles)
+    joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_3, pulley_angles)
 
     # Plot the results
     plot_results(finger_3, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
@@ -171,7 +145,7 @@ def main():
     pulley_angles = np.linspace(0, 3 * np.pi / 4, num_simulations)
 
     # Run the simulation
-    joint_angles, tendon_tensions, motor_torque, errors = run_simulation(finger_2, pulley_angles)
+    joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_2, pulley_angles)
 
     # Plot the results
     plot_results(finger_2, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
