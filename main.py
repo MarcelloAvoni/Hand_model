@@ -80,7 +80,7 @@ def main():
     plot_results(finger_3, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
 
     # Plot the finger video
-    make_animation(joint_angles, r_joints, r_tip, L_phalanxes)
+    make_animation(finger_3,joint_angles)
     
     # FINGER WITH 2 PHALANGES TEST
     # we initialize the finger parameters
@@ -150,7 +150,7 @@ def main():
     plot_results(finger_2, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
 
     # Plot the finger video
-    make_animation(joint_angles, r_joints, r_tip, L_phalanxes)
+    make_animation(finger_2,joint_angles)
 
 def debug():
 

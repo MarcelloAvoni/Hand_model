@@ -24,7 +24,12 @@ def plot_phalanx(ax, r_1, r_2, x_1, y_1, x_2, y_2, x_1_phalanx_up, y_1_phalanx_u
 
 
 
-def plot_finger(ax,joint_angles,r_joints,r_tip,L_phalanxes):
+def plot_finger(ax,finger,joint_angles):
+
+    #we first extract the relevant variables
+    r_joints = finger.r_joints
+    r_tip = finger.r_tip
+    L_phalanxes = finger.L_phalanxes
 
     #we calculate the number of joints
     n_joints = len(r_joints)
@@ -52,7 +57,7 @@ def plot_finger(ax,joint_angles,r_joints,r_tip,L_phalanxes):
     # we set the title
     ax.set_title('Finger Configuration')
 
-    (x_1, y_1, x_1_phalanx_up, y_1_phalanx_up, x_2_phalanx_up, y_2_phalanx_up, x_2, y_2, x_1_phalanx_down, y_1_phalanx_down, x_2_phalanx_down, y_2_phalanx_down) = finger_kinematics(joint_angles,r_joints,r_tip,L_phalanxes)
+    (x_1, y_1, x_1_phalanx_up, y_1_phalanx_up, x_2_phalanx_up, y_2_phalanx_up, x_2, y_2, x_1_phalanx_down, y_1_phalanx_down, x_2_phalanx_down, y_2_phalanx_down) = finger_kinematics(finger,joint_angles)
 
     #now we plot the finger
     x_0 = 0
@@ -75,19 +80,19 @@ def plot_finger(ax,joint_angles,r_joints,r_tip,L_phalanxes):
     
 
 
-def plot_update(frame,ax,joint_angles,r_joints,r_tip,L_phalanxes):
+def plot_update(frame,ax,finger,joint_angles):
 
     ax.clear()
-    plot_finger(ax,joint_angles[frame,:],r_joints,r_tip,L_phalanxes)
+    plot_finger(ax,finger,joint_angles[frame,:])
 
 
-def make_animation(joint_angles,r_joints,r_tip,L_phalanxes,save_path=None):
+def make_animation(finger,joint_angles,save_path=None):
 
     # we iterate over the joints to print the finger
     fig, ax = plt.subplots()
 
 
-    ani = FuncAnimation(fig,plot_update,frames=len(joint_angles),fargs=(ax,joint_angles,r_joints,r_tip,L_phalanxes),repeat=False)
+    ani = FuncAnimation(fig,plot_update,frames=len(joint_angles),fargs=(ax,finger,joint_angles),repeat=False)
     
     if save_path:
         ani.save(save_path, writer='ffmpeg', fps=30)
