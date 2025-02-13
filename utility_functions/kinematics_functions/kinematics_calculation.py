@@ -61,9 +61,14 @@ def phalanx_kinematics(r_1, r_2, L_phalanx, theta, x_o, y_o, alpha):
 
 
 
-def finger_kinematics(joint_angles,r_joints,r_tip,L_phalanxes):
+def finger_kinematics(finger,joint_angles):
 
     # This function computes the main points of a finger in the absolute reference frame.
+
+    #first we extract the relevant parameters from the finger object
+    r_joints = finger.r_joints
+    r_tip = finger.r_tip
+    L_phalanxes = finger.L_phalanxes
 
     #we calculate the number of joints
     n_joints = len(r_joints)
