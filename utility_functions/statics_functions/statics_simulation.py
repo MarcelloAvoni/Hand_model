@@ -18,13 +18,18 @@ def statics_simulation(finger,forces):
     #clone the original finger object
     finger_clone = copy.deepcopy(finger)
 
+    Fx = np.zeros(finger_clone.n_joints)
+    Fy = np.zeros(finger_clone.n_joints)
+    M = np.zeros(finger_clone.n_joints)
+
     for i in range(n_simulations):
 
-        Fx = np.zeros(finger_clone.n_joints)
-        Fy = np.zeros(finger_clone.n_joints)
-        M = np.zeros(finger_clone.n_joints)
+        beta = 0
+        for j in range(finger_clone.n_joints):
+            beta += finger_clone.joints[j].theta
 
-        Fx[-1]= forces[i]
+        Fx[-1]= forces[i]*np.cos(beta)
+        Fy[-1]= forces[i]*np.sin(beta)
 
         #update the forces
         finger_clone.update_given_phalanx_wrenches(Fx,Fy,M)

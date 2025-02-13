@@ -545,7 +545,7 @@ class Finger:
 
         #we define the scaling factors for the output
         output_scale_factors_torques = self.springs[0].F * self.joints[0].r * np.ones(self.n_joints)
-        output_scale_factors_lengths = self.tendons[self.map_pulley_to_tendon[0]].length * np.ones(self.n_pulleys)
+        output_scale_factors_lengths = self.tendons[-1].length * np.ones(self.n_pulleys)
         output_scale_factors = np.concatenate((output_scale_factors_torques,output_scale_factors_lengths))
 
 
