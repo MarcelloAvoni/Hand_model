@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from finger_class.finger_class_definition import Finger
 from utility_functions.plot_functions.plot_results import plot_results
 from utility_functions.plot_functions.plot_finger import make_animation
