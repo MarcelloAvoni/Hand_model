@@ -5,6 +5,7 @@ from utility_functions.plot_functions.plot_results import plot_results
 from utility_functions.plot_functions.plot_finger import make_animation
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
 from utility_functions.metrics_functions.metrics_calculation import compute_hand_metric
+from utility_functions.statics_functions.statics_simulation import statics_simulation
 
 
 
@@ -330,7 +331,7 @@ def metrics_debug():
 
     inf_stiff_tendons = [1, 1, 1]
     k_tendons = [0, 0, 0]
-    l_springs = [1e-4, 1e-4]
+    l_springs = [1e-3, 1e-3]
     l_0_springs = [0, 0]
     k_springs = [320, 320]
     pulley_radius_functions = [lambda x: 0.01]
@@ -345,6 +346,18 @@ def metrics_debug():
     hand_metric_2 = compute_hand_metric(finger_2, pulley_angles)
 
     print(f'The hand metric for 2 phalanges is {hand_metric_2}')
+
+    # Simulation parameters
+    num_simulations = 100
+    force = np.linspace(0, -8e-2, num_simulations)
+
+    # Run the simulation
+    joint_angles, tendon_tensions, motor_torque, errors = statics_simulation(finger_2, force)
+
+    plot_results(finger_2, -force, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
+
+    # Plot the finger video
+    make_animation(finger_2,joint_angles)
 
 
 

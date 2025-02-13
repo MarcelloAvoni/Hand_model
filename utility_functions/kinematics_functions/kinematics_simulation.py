@@ -20,10 +20,10 @@ def kinematics_simulation(finger, pulley_angles):
         finger_clone.update_given_pulley_angle(pulley_angles[i])
         
         # Store the joint angles and tendon tensions
-        for j in range(finger.n_joints):
+        for j in range(finger_clone.n_joints):
             joint_angles[i, j] = finger_clone.joints[j].theta
         
-        for j in range(finger.n_tendons):
+        for j in range(finger_clone.n_tendons):
             tendon_tensions[i, j] = finger_clone.tendons[j].tension
         
         # Store the motor torque and error

@@ -43,7 +43,7 @@ def plot_finger(ax,finger,joint_angles):
         l_max += L_phalanxes[i_iter]
         
     l_max = l_max + 2*r_tip
-    ax.set_xlim(-r_joints[0],l_max)
+    ax.set_xlim(-l_max,l_max)
     ax.set_ylim(-l_max,l_max)
 
     # we set the ticks to be invisible
