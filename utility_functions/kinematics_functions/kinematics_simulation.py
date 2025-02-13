@@ -3,6 +3,7 @@ import copy
 from finger_class.finger_class_definition import Finger
 
 def kinematics_simulation(finger, pulley_angles):
+    
     num_simulations = len(pulley_angles)
     
     # Preallocate arrays for results

@@ -34,32 +34,41 @@ def compute_hand_metric(finger, pulley_angles):
     # OUTPUTS:
     # hand_metric: average area of the polygon
 
-    joint_angles, _, _, _ = kinematics_simulation(finger, pulley_angles)
-    _, _, _, _, _, _, _, _, x_1_phalanx_down, y_1_phalanx_down, x_2_phalanx_down, y_2_phalanx_down = finger_kinematics(finger, joint_angles)
-
     #first we calculate the number of phalanges and angles
-    n_phalanges = np.size(x_1_phalanx_down, 0)
-    n_angles = np.size(x_1_phalanx_down, 1)
+    n_phalanges = finger.n_joints
+    n_angles = len(pulley_angles)
+
+    joint_angles, _, _, _ = kinematics_simulation(finger, pulley_angles)
+
+    # we preallocate the variables that will be used to store the coordinates of the main points
+    x_1_phalanx_down = np.zeros((n_angles,n_phalanges))
+    y_1_phalanx_down = np.zeros((n_angles,n_phalanges))
+    x_2_phalanx_down = np.zeros((n_angles,n_phalanges))
+    y_2_phalanx_down = np.zeros((n_angles,n_phalanges))
+
+    for i_iter in range(n_angles):
+        _, _, _, _, _, _, _, _, x_1_phalanx_down[i_iter,:], y_1_phalanx_down[i_iter,:], x_2_phalanx_down[i_iter,:], y_2_phalanx_down[i_iter,:] = finger_kinematics(finger, joint_angles[i_iter,:])
+
 
     # we compute the matrices thata wil be used for area calculation
-    x = np.zeros((2*n_phalanges, n_angles))
-    y = np.zeros((2*n_phalanges, n_angles))
+    x = np.zeros((n_angles, 2*n_phalanges))
+    y = np.zeros((n_angles, 2*n_phalanges))
 
     # we create the appropriate matrices for the area calculation
     for i in range(n_phalanges):
-        x[2*i, :] = x_1_phalanx_down[i, :]
-        x[2*i+1, :] = x_2_phalanx_down[i, :]
-        y[2*i, :] = y_1_phalanx_down[i, :]
-        y[2*i+1, :] = y_2_phalanx_down[i, :]
+        x[:, 2*i] = x_1_phalanx_down[:, i]
+        x[:, 2*i+1] = x_2_phalanx_down[:, i]
+        y[:, 2*i] = y_1_phalanx_down[:, i]
+        y[:, 2*i+1] = y_2_phalanx_down[:, i]
 
     # we compute the area of the polygon
     area = np.zeros(n_angles)
     for i in range(n_angles):
-        area[i] = polygon_area(x[:, i], y[:, i])
+        area[i] = polygon_area(x[i,:].transpose(), y[i,:].transpose())
 
     #we compute the average area over the pulley angles    
     hand_metric = np.trapz(area, pulley_angles) / (pulley_angles[-1] - pulley_angles[0])
-    
+
     return hand_metric
 
 
