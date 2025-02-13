@@ -70,6 +70,11 @@ class Finger:
         if len(set(lengths_inputs)) != 1:
             raise ValueError("All input lists related to springs must have the same number of entries")
         
+        #first we save the finger paramters to compute kinematics
+        self.r_joints = r_joints
+        self.r_tip = r_tip
+        self.L_phalanxes = L_phalanxes
+        
         
         #here we save the tendon interface matrices
         self.tendon_joint_interface = tendon_joint_interface
