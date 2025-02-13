@@ -3,7 +3,9 @@
 # import the necessary libraries
 import numpy as np
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
+from utility_functions.statics_functions.statics_simulation import statics_simulation
 from utility_functions.kinematics_functions.kinematics_calculation import finger_kinematics
+
 
 #function that computes the area of a polygon given its vertices
 def polygon_area(x, y):
@@ -71,5 +73,43 @@ def compute_hand_metric(finger, pulley_angles):
 
     return hand_metric
 
+def compute_foot_metric(finger,force):
+
+    # calculates the average support segment of the foot given the force applied to the finger
+    # INPUTS:
+    # finger: finger object
+    # force: force applied to the finger
+    # OUTPUTS:
+    # foot_metric: average support segment of the foot
+
+    # we first calculate the number of phalanges and simulations
+    n_phalanges = finger.n_joints
+    n_simulations = len(force)
+
+    #we extract useful variables
+    r_1 = finger.r_joints[0]
+    r_2 = finger.r_tip
+
+    #we run the simulatioin
+    joint_angles, _, _, _ = statics_simulation(finger, force)
+
+    # we preallocate the variables that will be used to store the coordinates of the main points
+    x_tip = np.zeros(n_simulations)
+    y_tip = np.zeros(n_simulations)
+
+    #we extract the finger positions from the kinematics
+    for i_iter in range(n_simulations):
+        (_, _, _, _, _, _, x_2, y_2, _, _, _, _) = finger_kinematics(finger, joint_angles[i_iter,:])
+        x_tip[i_iter] = x_2[-1]
+        y_tip[i_iter] = y_2[-1]
+
+    #we compute the support segment for each iteration
+    segment_length = np.zeros(n_simulations)
+    for i_iter in range(n_simulations):
+        segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2 - (r_1 - r_2)**2)
 
 
+    #we compute the average support segment over the simulations
+    foot_metric = np.trapz(segment_length, np.abs(force)) / np.abs(force[-1] - force[0])
+
+    return foot_metric
