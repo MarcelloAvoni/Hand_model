@@ -41,7 +41,7 @@ def main():
 
     # Simulation parameters
     num_simulations = 100
-    pulley_angles = np.linspace(0, 3 * np.pi / 4, num_simulations)
+    pulley_angles = np.linspace(0.01*3 * np.pi / 4, 3 * np.pi / 4, num_simulations)
 
     # Run the simulation
     joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_3, pulley_angles)
@@ -82,7 +82,7 @@ def main():
 
     # Simulation parameters
     num_simulations = 100
-    pulley_angles = np.linspace(0, 3 * np.pi / 4, num_simulations)
+    pulley_angles = np.linspace(0.01*3 * np.pi / 4, 3 * np.pi / 4, num_simulations)
 
     # Run the simulation
     joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_2, pulley_angles)
