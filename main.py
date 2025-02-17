@@ -120,7 +120,7 @@ def main():
         else:
             l_a[i_iter] = (2*f_2*r_1)*cos(beta)
 
-        l_b[i_iter] = 2*f_1*r_1*cos(beta)
+        l_b[i_iter] = f_1*r_1*cos(beta)
 
         if (i_iter == 0):
             l_c[i_iter] = p_r
