@@ -189,7 +189,8 @@ class Finger:
                 if(self.type_phalanxes[i_iter - 1] == 1):
                     l_a[i_iter] = (2*f_2*r_1)*cos(beta)          #value for proximal and distal phalanx
                 elif(self.type_phalanxes[i_iter - 1] == 2):
-                    l_a[i_iter] = (0.004 + 2*f_2*r_1)*cos(beta)  #value for intermediate phalanx
+                    l_a[i_iter]= (3*f_2*r_1)*cos(beta)
+                    #l_a[i_iter] = (0.004 + 2*f_2*r_1)*cos(beta)  value for intermediate phalanx
                 elif(self.type_phalanxes[i_iter - 1] == 3):
                     l_a[i_iter] = (2*f_2*r_1)*cos(beta)          #value for proximal and distal phalanx
                 else:
