@@ -64,7 +64,7 @@ def main():
     r_tip = 0.004
     L_phalanxes = [0.04, 0.03]
     b_a_metacarpal = 0.006
-    type_phalanxes = [2,3]
+    type_phalanxes = [1,3]
     L_metacarpal = 0.01
 
 
@@ -92,12 +92,6 @@ def main():
 
     # Plot the finger video
     make_animation(finger_2,joint_angles)
-
-
-
-
-
-
 
 
 
