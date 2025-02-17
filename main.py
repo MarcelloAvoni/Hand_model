@@ -414,4 +414,4 @@ def attempt_foot_test():
 
 
 if __name__ == "__main__":
-    attempt_foot_test()
+    main()
