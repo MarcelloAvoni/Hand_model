@@ -5,16 +5,6 @@ import numpy as np
 import random
 
 
-#we define the design space throgh a dictionary
-r_min = 0.002
-r_max = 0.02
-
-L_min_phalanx = 0.02
-L_min_palm = 0.08
-L_tot = 0.18
-
-
-
 
 #function that creates different geometries of fingers
 def generate_designs(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot):
@@ -187,6 +177,7 @@ def create_design_database(n_design,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_
         r_joints, r_tip, L_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r = generate_designs(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot)
         hand_metric, foot_metric = evaluate_design(r_joints, r_tip, L_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
         database.append({
+            "n_joints":len(r_joints),
             "r_joints":r_joints,
             "r_tip":r_tip,
             "L_phalanxes":L_phalanxes,

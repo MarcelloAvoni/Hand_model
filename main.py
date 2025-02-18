@@ -6,11 +6,12 @@ from utility_functions.plot_functions.plot_finger import make_animation
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
 from utility_functions.metrics_functions.metrics_calculation import compute_hand_metric, compute_foot_metric
 from utility_functions.statics_functions.statics_simulation import statics_simulation
+from utility_functions.design_functions.design_analysis import create_design_database
+import matplotlib.pyplot as plt
 
 
 
-
-def main():
+def main_debug():
 
     # FINGER WITH 3 PHALANGES TEST
     # we initialize the finger parameters
@@ -92,6 +93,54 @@ def main():
 
     # Plot the finger video
     make_animation(finger_2,joint_angles)
+
+def main():
+
+    n_design = 10
+    f_1 = 0.5
+    f_2 = 0.5*0.5
+    p_r = 0.0015*1.5
+
+    r_min = 0.003
+    r_max = 0.01
+
+    L_min_phalanx = 0.02
+    L_min_palm = 0.08
+    L_tot = 0.18
+
+    l_spring = 100
+    l_0_spring = 0
+    k_spring = 320
+    pulley_radius_function = lambda x: 0.01
+    pulley_rotation = 3 * pi / 4
+    max_force = 0.01
+
+    database = create_design_database(n_design,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
+
+
+    #now we want to plot the hand and foot metrics for each design
+    # "b" for 1 phalanx, "g" for 2 phalanxes, "r" for 3 phalanxes
+    color_scheme = ["b", "g", "r"]
+    
+    # we initialize the metrics
+    hand_metrics = [0] * n_design
+    foot_metrics = [0] * n_design
+
+    for i in range(n_design):
+        hand_metrics[i], foot_metrics[i] = database[i]["hand_metric"], database[i]["foot_metric"]
+
+    # we plot the metrics- each design is represented by a point
+
+    plt.figure()
+    for i in range(n_design):
+        plt.plot(hand_metrics[i], foot_metrics[i], color_scheme[database[i]["n_joints"]-1] + "o", label = "Design " + str(i+1))
+    
+    #we add the labels
+    plt.xlabel("Hand metric")
+    plt.ylabel("Foot metric")
+
+    plt.show()
+
 
 
 

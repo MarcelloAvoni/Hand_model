@@ -58,9 +58,10 @@ def compute_hand_metric(finger, pulley_angles):
     y = np.zeros((n_angles, 2 + 2*n_phalanges))
 
     # we create the appropriate matrices for the area calculation
-    x[:, 0:1 ] = finger.r_joints[0] * np.ones((n_angles,2))
-    y[:, 0] = np.zeros((n_angles,1))
-    y[:, 1] = - finger.L_metacarpal * np.ones((n_angles,1))
+    x[:, 0] = finger.r_joints[0] * np.ones(n_angles)
+    x[:, 1] = finger.r_joints[0] * np.ones(n_angles)
+    y[:, 0] = np.zeros(n_angles)
+    y[:, 1] = - finger.L_metacarpal * np.ones(n_angles)
     for i in range(n_phalanges):
         x[:, 2 + 2*i] = x_1_phalanx_down[:, i]
         x[:, 2 + 2*i+1] = x_2_phalanx_down[:, i]
