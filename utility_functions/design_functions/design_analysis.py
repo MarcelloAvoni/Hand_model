@@ -176,4 +176,32 @@ def evaluate_design(r_joints, r_tip, L_phalanxes, L_metacarpal, b_a_metacarpal, 
 
     return hand_metric, foot_metric
 
+
+#we define a function that creates a database of designs. Each design is stored as a dictionary
+def create_design_database(n_design,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force):
+
+    #we create the database
+    database = []
+
+    for i in range(n_design):
+        r_joints, r_tip, L_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r = generate_designs(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot)
+        hand_metric, foot_metric = evaluate_design(r_joints, r_tip, L_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
+        database.append({
+            "r_joints":r_joints,
+            "r_tip":r_tip,
+            "L_phalanxes":L_phalanxes,
+            "L_metacarpal":L_metacarpal,
+            "b_a_metacarpal":b_a_metacarpal,
+            "f_1":f_1,
+            "f_2":f_2,
+            "p_r":p_r,
+            "hand_metric":hand_metric,
+            "foot_metric":foot_metric})
+
+    return database
+
+
+    
+
+
     
