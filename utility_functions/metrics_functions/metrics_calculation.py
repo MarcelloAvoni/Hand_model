@@ -5,6 +5,7 @@ import numpy as np
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
 from utility_functions.statics_functions.statics_simulation import statics_simulation
 from utility_functions.kinematics_functions.kinematics_calculation import finger_kinematics
+from finger_class.finger_class_definition import Finger
 
 
 #function that computes the area of a polygon given its vertices
@@ -53,15 +54,18 @@ def compute_hand_metric(finger, pulley_angles):
 
 
     # we compute the matrices thata wil be used for area calculation
-    x = np.zeros((n_angles, 2*n_phalanges))
-    y = np.zeros((n_angles, 2*n_phalanges))
+    x = np.zeros((n_angles, 2 + 2*n_phalanges))
+    y = np.zeros((n_angles, 2 + 2*n_phalanges))
 
     # we create the appropriate matrices for the area calculation
+    x[:, 0:1 ] = finger.r_joints[0] * np.ones((n_angles,2))
+    y[:, 0] = np.zeros((n_angles,1))
+    y[:, 1] = - finger.L_metacarpal * np.ones((n_angles,1))
     for i in range(n_phalanges):
-        x[:, 2*i] = x_1_phalanx_down[:, i]
-        x[:, 2*i+1] = x_2_phalanx_down[:, i]
-        y[:, 2*i] = y_1_phalanx_down[:, i]
-        y[:, 2*i+1] = y_2_phalanx_down[:, i]
+        x[:, 2 + 2*i] = x_1_phalanx_down[:, i]
+        x[:, 2 + 2*i+1] = x_2_phalanx_down[:, i]
+        y[:, 2 + 2*i] = y_1_phalanx_down[:, i]
+        y[:, 2 + 2*i+1] = y_2_phalanx_down[:, i]
 
     # we compute the area of the polygon
     area = np.zeros(n_angles)
@@ -106,7 +110,7 @@ def compute_foot_metric(finger,force):
     #we compute the support segment for each iteration
     segment_length = np.zeros(n_simulations)
     for i_iter in range(n_simulations):
-        segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2 - (r_1 - r_2)**2)
+        segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2)
 
 
     #we compute the average support segment over the simulations
