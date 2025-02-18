@@ -40,6 +40,7 @@ def compute_hand_metric(finger, pulley_angles):
     #first we calculate the number of phalanges and angles
     n_phalanges = finger.n_joints
     n_angles = len(pulley_angles)
+    L_tot = sum(finger.L_phalanxes)
 
     joint_angles, _, _, _ = kinematics_simulation(finger, pulley_angles)
 
@@ -69,12 +70,13 @@ def compute_hand_metric(finger, pulley_angles):
         y[:, 2 + 2*i+1] = y_2_phalanx_down[:, i]
 
     # we compute the area of the polygon
-    area = np.zeros(n_angles)
+    relative_area = np.zeros(n_angles)
     for i in range(n_angles):
-        area[i] = polygon_area(x[i,:].transpose(), y[i,:].transpose())
+        relative_area[i] = polygon_area(x[i,:].transpose(), y[i,:].transpose()) / L_tot**2
+
 
     #we compute the average area over the pulley angles    
-    hand_metric = np.trapz(area, pulley_angles) / (pulley_angles[-1] - pulley_angles[0])
+    hand_metric = np.trapz(relative_area, pulley_angles) / (pulley_angles[-1] - pulley_angles[0])
 
     return hand_metric
 
@@ -90,6 +92,8 @@ def compute_foot_metric(finger,force):
     # we first calculate the number of phalanges and simulations
     n_phalanges = finger.n_joints
     n_simulations = len(force)
+
+    L_tot = sum(finger.L_phalanxes) + finger.r_joints[0] - finger.r_tip
 
     #we extract useful variables
     r_1 = finger.r_joints[0]
@@ -109,12 +113,12 @@ def compute_foot_metric(finger,force):
         y_tip[i_iter] = y_2[-1]
 
     #we compute the support segment for each iteration
-    segment_length = np.zeros(n_simulations)
+    relative_segment_length = np.zeros(n_simulations)
     for i_iter in range(n_simulations):
-        segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2)
+        relative_segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2) / L_tot
 
 
     #we compute the average support segment over the simulations
-    foot_metric = np.trapz(segment_length, np.abs(force)) / np.abs(force[-1] - force[0])
+    foot_metric = np.trapz(relative_segment_length, np.abs(force)) / np.abs(force[-1] - force[0])
 
     return foot_metric
