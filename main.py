@@ -108,12 +108,12 @@ def main():
     L_min_palm = 0.08
     L_tot = 0.18
 
-    l_spring = 100
+    l_spring = 0.01
     l_0_spring = 0
     k_spring = 320
     pulley_radius_function = lambda x: 0.01
     pulley_rotation = 3 * pi / 4
-    max_force = 0.01
+    max_force = 1
 
     database = create_design_database(n_design,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
 
@@ -133,7 +133,7 @@ def main():
 
     plt.figure()
     for i in range(n_design):
-        plt.plot(hand_metrics[i], foot_metrics[i], color_scheme[database[i]["n_joints"]-1] + "o", label = "Design " + str(i+1))
+        plt.plot(hand_metrics[i], foot_metrics[i], color_scheme[database[i]["n_joints"]-1] + "o")
     
     #we add the labels
     plt.xlabel("Hand metric")

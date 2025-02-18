@@ -40,7 +40,7 @@ def compute_hand_metric(finger, pulley_angles):
     #first we calculate the number of phalanges and angles
     n_phalanges = finger.n_joints
     n_angles = len(pulley_angles)
-    L_tot = sum(finger.L_phalanxes)
+    L_tot = finger.L_metacarpal + sum(finger.L_phalanxes)
 
     joint_angles, _, _, _ = kinematics_simulation(finger, pulley_angles)
 
@@ -93,7 +93,7 @@ def compute_foot_metric(finger,force):
     n_phalanges = finger.n_joints
     n_simulations = len(force)
 
-    L_tot = sum(finger.L_phalanxes) + finger.r_joints[0] - finger.r_tip
+    L_tot = sum(finger.L_phalanxes) + finger.r_joints[0]
 
     #we extract useful variables
     r_1 = finger.r_joints[0]
