@@ -1,6 +1,6 @@
 # in this file we define the functions that analyzes a design given the metrics
 from finger_class.finger_class_definition import Finger
-from scipy.stats import uniform
+from utility_functions.metrics_functions.metrics_calculation import compute_hand_metric, compute_foot_metric
 import numpy as np
 import random
 
@@ -53,4 +53,127 @@ def generate_designs(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot):
     r_tip = random.uniform(r_min,r_joints[-1])
 
     b_a_metacarpal = r_joints[0]
+
+    #we return the parameters as a dictionary
+
+    return r_joints, r_tip, L_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r
+
+
+# function that computes the metrics for a given design
+def evaluate_design(r_joints, r_tip, L_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force):
+  
+
+    # we create the finger objects
+    n_joints = len(r_joints)
+
+    if n_joints == 1:
+        
+        type_phalanxes = [3]
+        
+        inf_stiff_tendons = [1, 1]
+        k_tendons = [0, 0]
+
+        l_springs_hand = [l_spring] * 1
+        l_springs_foot = [l_spring] * 2
+
+
+        l_0_springs_hand = [l_0_spring] * 1
+        l_0_springs_foot = [l_0_spring] * 2
+
+        k_spring_hand = [k_spring] * 1
+        k_spring_foot = [k_spring] * 2
+
+        pulley_radius_function_hand = [pulley_radius_function] * 1
+        pulley_radius_function_foot = []
+
+        tendon_joint_interface = [["e"], ["f"]]
+
+        tendon_spring_interface_hand = [[1], [0]]
+
+        tendon_pulley_interface_hand = [[0], [1]]
+
+        tendon_spring_interface_foot = [[1, 0], [0, 1]]
+
+        tendon_pulley_interface_foot = [[], []]
+
+
+
+
+
+    elif n_joints == 2:
+
+        type_phalanxes = [1, 3]
+
+        inf_stiff_tendons = [1, 1, 1]
+        k_tendons = [0, 0, 0]
+
+        l_springs_hand = [l_spring] * 2
+        l_springs_foot = [l_spring] * 3
+
+
+        l_0_springs_hand = [l_0_spring] * 2
+        l_0_springs_foot = [l_0_spring] * 3
+
+        k_spring_hand = [k_spring] * 2
+        k_spring_foot = [k_spring] * 3
+
+        pulley_radius_function_hand = [pulley_radius_function] * 1
+        pulley_radius_function_foot = []
+
+        tendon_joint_interface = [["e", "n"], ["t", "e"], ["f", "f"]]
+
+        tendon_spring_interface_hand = [[1, 0], [0, 1], [0, 0]]
+
+        tendon_pulley_interface_hand = [[0], [0], [1]]
+
+        tendon_spring_interface_foot = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+
+        tendon_pulley_interface_foot = [[], [], []]
+
+    elif n_joints == 3:
+
+        type_phalanxes = [1, 2, 3]
+
+        inf_stiff_tendons = [1, 1, 1]
+        k_tendons = [0, 0, 0]
+
+        l_springs_hand = [l_spring] * 2
+        l_springs_foot = [l_spring] *3
+
+
+        l_0_springs_hand = [l_0_spring] * 2
+        l_0_springs_foot = [l_0_spring] * 3
+
+        k_spring_hand = [k_spring] * 2
+        k_spring_foot = [k_spring] * 3
+
+        pulley_radius_function_hand = [pulley_radius_function] * 1
+        pulley_radius_function_foot = []
+
+        tendon_joint_interface = [["e", "t", "e"], ["t", "e", "n"], ["f", "f", "f"]]
+
+        tendon_spring_interface_hand = [[1, 0], [0, 1], [0, 0]]
+
+        tendon_pulley_interface_hand = [[0], [0], [1]]
+
+        tendon_spring_interface_foot = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+
+        tendon_pulley_interface_foot = [[], [], []]
+
+
+    hand = Finger("hand", r_joints, r_tip, L_phalanxes, type_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, inf_stiff_tendons, k_tendons, l_springs_hand, l_0_springs_hand, k_spring_hand, pulley_radius_function_hand, tendon_joint_interface, tendon_spring_interface_hand, tendon_pulley_interface_hand)
+
+    foot = Finger("foot", r_joints, r_tip, L_phalanxes, type_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, inf_stiff_tendons, k_tendons, l_springs_foot, l_0_springs_foot, k_spring_foot, pulley_radius_function_foot, tendon_joint_interface, tendon_spring_interface_foot, tendon_pulley_interface_foot)
+
+
+    # we compute the metrics
+    pulley_angles = np.linspace(0.01*pulley_rotation, pulley_rotation, 100)
+    hand_metric = compute_hand_metric(hand, pulley_angles)
+
+    force = np.linspace(-0.01*max_force, -max_force, 100)
+    foot_metric = compute_foot_metric(foot, force)
+
+
+    return hand_metric, foot_metric
+
     
