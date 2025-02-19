@@ -108,9 +108,9 @@ def main():
     L_min_palm = 0.08
     L_tot = 0.18
 
-    l_spring = 0.01
+    l_spring = 0.1
     l_0_spring = 0
-    k_spring = 320
+    k_spring = 21
     pulley_radius_function = lambda x: 0.01
     pulley_rotation = 3 * pi / 4
     max_force = 1

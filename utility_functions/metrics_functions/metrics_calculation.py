@@ -119,6 +119,6 @@ def compute_foot_metric(finger,force):
 
 
     #we compute the average support segment over the simulations
-    foot_metric = np.trapz(relative_segment_length, np.abs(force)) / np.abs(force[-1] - force[0])
+    foot_metric = relative_segment_length[-1]
 
     return foot_metric
