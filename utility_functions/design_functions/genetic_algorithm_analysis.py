@@ -3,9 +3,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-from deap import base, creator, tools, algorithms
+from deap import base, creator, tools
 
-def main(seed=None):
+def NSGA2_analysis(seed=None):
     random.seed(seed)
 
     # we create the boundaries for the independent variables
@@ -137,29 +137,6 @@ def main(seed=None):
 
     # now we make the plots
     return pop, logbook, pop_hist
-
-if __name__ == "__main__":
-    pop, logbook, pop_hist = main()
-
-    #we now plot the population
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-    
-    for gen in range(len(pop_hist) - 1):
-        f1 = [ind.fitness.values[0] for ind in pop_hist[gen]]
-        f2 = [ind.fitness.values[1] for ind in pop_hist[gen]]
-        x1 = [ind[0] for ind in pop_hist[gen]]
-        x2 = [ind[1] for ind in pop_hist[gen]]
-        alpha = 0.5 * (gen + 1) / len(pop_hist)  # Calculate transparency linearly
-        color = "red"
-        ax1.scatter(x1, x2, c=color, alpha=alpha)
-        ax2.scatter(f1, f2, c=color, alpha=alpha)
-    ax1.set_xlabel("x1")
-    ax1.set_ylabel("x2")
-    ax1.scatter([ind[0] for ind in pop], [ind[1] for ind in pop], c='green')
-    ax2.scatter([ind.fitness.values[0] for ind in pop], [ind.fitness.values[1] for ind in pop], c='green')
-    ax2.set_xlabel("f1")
-    ax2.set_ylabel("f2")
-    plt.show()
 
 
 

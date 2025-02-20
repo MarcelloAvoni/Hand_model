@@ -5,7 +5,7 @@ from utility_functions.plot_functions.plot_results import plot_results
 from utility_functions.plot_functions.plot_finger import make_animation
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
 from utility_functions.metrics_functions.metrics_calculation import compute_hand_metric, compute_foot_metric
-from utility_functions.design_functions.design_analysis import create_design_database
+from utility_functions.design_functions.design_analysis import NSGA2_analysis
 import matplotlib.pyplot as plt
 
 
@@ -96,7 +96,6 @@ def main_debug():
 
 def main():
 
-    n_design = 1000
     f_1 = 0.5
     f_2 = 0.5*0.5
     p_r = 0.0015*1.5
@@ -115,31 +114,28 @@ def main():
     pulley_rotation = 3 * pi / 4
     max_force = 0.1
 
-    database = create_design_database(n_design,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
+    n_pop = 100
+    n_gen = 50
+    cx_pb = 1
+    mu_pb = 1
 
-
+    pop, logbook, pop_hist = NSGA2_analysis(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,l_spring,l_0_spring,k_spring,pulley_radius_function,pulley_rotation,max_force,n_pop,n_gen,cx_pb,mu_pb,seed=None)
+    
     #now we want to plot the hand and foot metrics for each design
     # "b" for 1 phalanx, "g" for 2 phalanxes, "r" for 3 phalanxes
     color_scheme = ["b", "g", "r"]
-    
-    # we initialize the metrics
-    hand_metrics = [0] * n_design
-    foot_metrics = [0] * n_design
 
-    for i in range(n_design):
-        hand_metrics[i], foot_metrics[i] = database[i]["hand_metric"], database[i]["foot_metric"]
+    #we plot the results of the pareto front
+    fig, ax = plt.subplots()
+    for i in range(n_pop):
+        hand_metric = pop[i].fitness.values[0]
+        foot_metric = pop[i].fitness.values[1]
+        ax.scatter(hand_metric,foot_metric,color="r")
 
-    # we plot the metrics- each design is represented by a point
-
-    plt.figure()
-    for i in range(n_design):
-        plt.plot(hand_metrics[i], foot_metrics[i], color_scheme[database[i]["n_joints"]-1] + "o")
-    
-    #we add the labels
-    plt.xlabel("Hand metric")
-    plt.ylabel("Foot metric")
-
+    ax.set_xlabel("Hand metric")
+    ax.set_ylabel("Foot metric")
     plt.show()
+
 
 
 
