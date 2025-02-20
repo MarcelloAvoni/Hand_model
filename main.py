@@ -114,8 +114,8 @@ def main():
     pulley_rotation = 3 * pi / 4
     max_force = 0.1
 
-    n_pop = 100
-    n_gen = 50
+    n_pop = 30
+    n_gen = 10
     cx_pb = 1
     mu_pb = 1
 

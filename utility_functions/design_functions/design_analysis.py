@@ -124,7 +124,7 @@ def penalty_function(n_joints,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,individ
     if abs(sum(L_phalanxes) + L_metacarpal - L_tot) > 1e-4:
         distance += (sum(L_phalanxes) + L_metacarpal - L_tot)**2
 
-    penalty = - distance - 1
+    penalty = - 10*distance - 10
 
     return penalty
 
@@ -314,8 +314,8 @@ def NSGA2_analysis(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,l_spri
 
 
     toolbox.register("evaluate", evaluate_design, n_joints,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,f_1, f_2, p_r, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
-    toolbox.register("mate", tools.cxSimulatedBinaryBounded, eta=1, low=LOW_BOUND, up=UP_BOUND)
-    toolbox.register("mutate", tools.mutPolynomialBounded, eta=1, low=LOW_BOUND, up=UP_BOUND, indpb=1/len(UP_BOUND))
+    toolbox.register("mate", tools.cxSimulatedBinaryBounded, eta=20, low=LOW_BOUND, up=UP_BOUND)
+    toolbox.register("mutate", tools.mutPolynomialBounded, eta=20, low=LOW_BOUND, up=UP_BOUND, indpb=1/len(UP_BOUND))
     toolbox.register("select", tools.selNSGA2)
 
     # initialize statistics object

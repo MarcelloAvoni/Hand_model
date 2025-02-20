@@ -93,32 +93,32 @@ def compute_foot_metric(finger,force):
     n_phalanges = finger.n_joints
     n_simulations = len(force)
 
-    L_tot = sum(finger.L_phalanxes) + finger.r_joints[0]
+    L_tot = sum(finger.L_phalanxes) + finger.L_metacarpal
 
     #we extract useful variables
-    r_1 = finger.r_joints[0]
-    r_2 = finger.r_tip
+    #r_1 = finger.r_joints[0]
+    #r_2 = finger.r_tip
 
     #we run the simulatioin
-    joint_angles, _, _, _ = statics_simulation(finger, force)
+    #joint_angles, _, _, _ = statics_simulation(finger, force)
 
     # we preallocate the variables that will be used to store the coordinates of the main points
-    x_tip = np.zeros(n_simulations)
-    y_tip = np.zeros(n_simulations)
+    #x_tip = np.zeros(n_simulations)
+    #y_tip = np.zeros(n_simulations)
 
     #we extract the finger positions from the kinematics
-    for i_iter in range(n_simulations):
-        (_, _, _, _, _, _, x_2, y_2, _, _, _, _) = finger_kinematics(finger, joint_angles[i_iter,:])
-        x_tip[i_iter] = x_2[-1]
-        y_tip[i_iter] = y_2[-1]
+    #for i_iter in range(n_simulations):
+    #    (_, _, _, _, _, _, x_2, y_2, _, _, _, _) = finger_kinematics(finger, joint_angles[i_iter,:])
+    #    x_tip[i_iter] = x_2[-1]
+    #    y_tip[i_iter] = y_2[-1]
 
     #we compute the support segment for each iteration
-    relative_segment_length = np.zeros(n_simulations)
-    for i_iter in range(n_simulations):
-        relative_segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2) / L_tot
+    #relative_segment_length = np.zeros(n_simulations)
+    #for i_iter in range(n_simulations):
+    #    relative_segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2) / L_tot
 
 
     #we compute the average support segment over the simulations
-    foot_metric = relative_segment_length[-1]
+    foot_metric = finger.L_metacarpal / L_tot
 
     return foot_metric
