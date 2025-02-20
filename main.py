@@ -5,9 +5,9 @@ from utility_functions.plot_functions.plot_results import plot_results
 from utility_functions.plot_functions.plot_finger import make_animation
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
 from utility_functions.metrics_functions.metrics_calculation import compute_hand_metric, compute_foot_metric
-from utility_functions.statics_functions.statics_simulation import statics_simulation
 from utility_functions.design_functions.design_analysis import create_design_database
 import matplotlib.pyplot as plt
+
 
 
 
@@ -96,7 +96,7 @@ def main_debug():
 
 def main():
 
-    n_design = 10
+    n_design = 1000
     f_1 = 0.5
     f_2 = 0.5*0.5
     p_r = 0.0015*1.5
@@ -113,7 +113,7 @@ def main():
     k_spring = 21
     pulley_radius_function = lambda x: 0.01
     pulley_rotation = 3 * pi / 4
-    max_force = 1
+    max_force = 0.1
 
     database = create_design_database(n_design,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
 
@@ -140,6 +140,7 @@ def main():
     plt.ylabel("Foot metric")
 
     plt.show()
+
 
 
 

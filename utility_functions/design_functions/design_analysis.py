@@ -3,6 +3,7 @@ from finger_class.finger_class_definition import Finger
 from utility_functions.metrics_functions.metrics_calculation import compute_hand_metric, compute_foot_metric
 import numpy as np
 import random
+from deap import base, creator, tools, algorithms
 
 
 
@@ -190,6 +191,43 @@ def create_design_database(n_design,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_
             "foot_metric":foot_metric})
 
     return database
+
+
+#we define a NSGA-II algorithm for the evaluation of the designs, we assume to have 2 phalanges
+def NSGA_evaluation():
+
+    def evaluate(individual):
+
+        r_joints = [individual[0], individual[1]]
+        r_tip = individual[2]
+        L_phalanxes = [individual[3], individual[4]]
+        L_metacarpal = individual[5]
+
+        b_a_metacarpal = r_joints[0]
+
+        f_1 = 0.5
+        f_2 = 0.5*0.5
+        p_r = 0.0015*1.5
+
+        l_spring = 0.1
+        l_0_spring = 0
+        k_spring = 21
+        pulley_radius_function = lambda x: 0.01
+        pulley_rotation = 3 * np.pi / 4
+        max_force = 0.1
+
+        hand_metric, foot_metric = evaluate_design(r_joints, r_tip, L_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
+
+        return (hand_metric, foot_metric)
+    
+    # we define the optimization problem as a maximization problem
+    creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
+    creator.create("Individual", list, fitness=creator.FitnessMax)
+
+    # we define the toolbox
+    toolbox = base.Toolbox()
+    toolbox.register("attr_float", random.uniform, 0.003, 0.01)
+    
 
 
     
