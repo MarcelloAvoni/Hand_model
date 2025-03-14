@@ -561,7 +561,7 @@ class Finger:
         residuals =  torques + delta_lengths_flexor
 
         #we scale the residuals
-        for i_iter in range(self.n_joints):
+        for i_iter in range(self.n_joints + self.n_pulleys):
             residuals[i_iter] = residuals[i_iter] / output_scale_factors[i_iter]
         
 
