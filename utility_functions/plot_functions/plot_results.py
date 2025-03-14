@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter
 from .plot_finger import plot_finger
 import numpy as np
 
@@ -12,6 +13,11 @@ def plot_results(finger, pulley_angles, joint_angles, tendon_tensions, motor_tor
 
     font_size = 18  # Define the font size for labels
 
+    # Create a ScalarFormatter for scientific notation
+    formatter = ScalarFormatter(useMathText=True)
+    formatter.set_scientific(True)
+    formatter.set_powerlimits((-1, 1))
+
     # Plot joint angles
     fig, ax = plt.subplots()
     for j in range(joint_angles.shape[1]):
@@ -19,6 +25,8 @@ def plot_results(finger, pulley_angles, joint_angles, tendon_tensions, motor_tor
     ax.set_xlabel('Pulley Angle [rad]', fontsize=font_size)
     ax.set_ylabel('Joint Angles [rad]', fontsize=font_size)
     ax.legend()
+    ax.xaxis.set_major_formatter(formatter)
+    ax.yaxis.set_major_formatter(formatter)
     if save_path:
         fig.savefig(f"{save_path}/joint_angles_{finger.name}.pdf")
     plt.close(fig)
@@ -30,6 +38,8 @@ def plot_results(finger, pulley_angles, joint_angles, tendon_tensions, motor_tor
     ax.set_xlabel('Pulley Angle [rad]', fontsize=font_size)
     ax.set_ylabel('Tendon Tensions [N]', fontsize=font_size)
     ax.legend()
+    ax.xaxis.set_major_formatter(formatter)
+    ax.yaxis.set_major_formatter(formatter)
     if save_path:
         fig.savefig(f"{save_path}/tendon_tensions_{finger.name}.pdf")
     plt.close(fig)
@@ -40,6 +50,8 @@ def plot_results(finger, pulley_angles, joint_angles, tendon_tensions, motor_tor
     ax.set_xlabel('Pulley Angle [rad]', fontsize=font_size)
     ax.set_ylabel('Motor Torque [Nm]', fontsize=font_size)
     ax.legend()
+    ax.xaxis.set_major_formatter(formatter)
+    ax.yaxis.set_major_formatter(formatter)
     if save_path:
         fig.savefig(f"{save_path}/motor_torque_{finger.name}.pdf")
     plt.close(fig)
@@ -50,6 +62,8 @@ def plot_results(finger, pulley_angles, joint_angles, tendon_tensions, motor_tor
     ax.set_xlabel('Pulley Angle [rad]', fontsize=font_size)
     ax.set_ylabel('Error [-]', fontsize=font_size)
     ax.legend()
+    ax.xaxis.set_major_formatter(formatter)
+    ax.yaxis.set_major_formatter(formatter)
     if save_path:
         fig.savefig(f"{save_path}/error_{finger.name}.pdf")
     plt.close(fig)
@@ -69,6 +83,8 @@ def plot_results(finger, pulley_angles, joint_angles, tendon_tensions, motor_tor
         plot_finger(ax, finger, joint_angles_plot[i, :], alpha)
     ax.set_xlabel('x [m]', fontsize=font_size)
     ax.set_ylabel('y [m]', fontsize=font_size)
+    ax.xaxis.set_major_formatter(formatter)
+    ax.yaxis.set_major_formatter(formatter)
     if save_path:
         fig.savefig(f"{save_path}/finger_kinematics_{finger.name}.pdf")
     plt.close(fig)

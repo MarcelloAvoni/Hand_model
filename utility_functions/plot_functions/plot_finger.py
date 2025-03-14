@@ -79,10 +79,6 @@ def plot_finger(ax,finger,joint_angles,alpha=1.0):
     ax.set_xlim(-2*r_joints[0],l_max)
     ax.set_ylim(min(-l_max,-L_metacarpal-r_joints[0]),l_max)
 
-    # we set the labels
-    ax.set_xlabel('x [m]')
-    ax.set_ylabel('y [m]')
-
     (x_1, y_1, x_1_phalanx_up, y_1_phalanx_up, x_2_phalanx_up, y_2_phalanx_up, x_2, y_2, x_1_phalanx_down, y_1_phalanx_down, x_2_phalanx_down, y_2_phalanx_down) = finger_kinematics(finger,joint_angles)
 
     #now we plot the finger
