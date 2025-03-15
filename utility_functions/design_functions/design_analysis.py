@@ -249,8 +249,7 @@ def evaluate_design(n_joints,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,f_1, f_2
     pulley_angles = np.linspace(0.01*pulley_rotation, pulley_rotation, 100)
     hand_metric = compute_hand_metric(hand, pulley_angles)
 
-    force = np.linspace(-0.01*max_force, -max_force, 10)
-    foot_metric = compute_foot_metric(foot, force)
+    foot_metric = compute_foot_metric(foot)
 
 
     return (hand_metric, foot_metric)

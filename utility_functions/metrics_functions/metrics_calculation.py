@@ -80,7 +80,7 @@ def compute_hand_metric(finger, pulley_angles):
 
     return hand_metric
 
-def compute_foot_metric(finger,force):
+def compute_foot_metric(finger):
 
     # calculates the average support segment of the foot given the force applied to the finger
     # INPUTS:
@@ -91,7 +91,6 @@ def compute_foot_metric(finger,force):
 
     # we first calculate the number of phalanges and simulations
     n_phalanges = finger.n_joints
-    n_simulations = len(force)
 
     L_tot = sum(finger.L_phalanxes) + finger.L_metacarpal
 

@@ -1,21 +1,21 @@
 import numpy as np
 from math import atan2, sin, cos, pi
 from finger_class.finger_class_definition import Finger
-from utility_functions.plot_functions.plot_results import plot_results
-from utility_functions.plot_functions.plot_finger import make_animation
+from utility_functions.plot_functions.plot_results import plot_kinematics_results, plot_statics_results
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
-from utility_functions.metrics_functions.metrics_calculation import compute_hand_metric, compute_foot_metric
+from utility_functions.statics_functions.statics_simulation import statics_simulation
 from utility_functions.design_functions.design_analysis import NSGA2_analysis
 import matplotlib.pyplot as plt
 
 
 
 
-def main_debug():
+def main():
     
     # FINGER WITH 2 PHALANGES TEST
     # we initialize the finger parameters
-    name = "Finger_Simulation"
+    name_kin = "Kinematics_Simulation"
+    name_stat = "Statics_Simulation"
     f_1 = 0.5
     f_2 = 0.5*0.5
     p_r = 0.0015*1.5
@@ -39,20 +39,42 @@ def main_debug():
     tendon_spring_interface = [[1, 0], [0, 1],[0, 0]]
     tendon_pulley_interface = [[0], [0], [1]]
 
-    finger_2 = Finger(name, r_joints, r_tip, L_phalanxes, type_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
+    finger_kinematics = Finger(name_kin, r_joints, r_tip, L_phalanxes, type_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
 
-    # Simulation parameters
+    # Parameters for the kinematics simulation
     num_simulations = 100
-    pulley_angles = np.linspace(0.01*3 * np.pi / 4, 5* np.pi / 8, num_simulations)
+    final_angle = 5* np.pi / 8
+    initial_angle = 1e-4 * final_angle
+    pulley_angles = np.linspace(initial_angle, final_angle, num_simulations)
 
     # Run the simulation
-    joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_2, pulley_angles)
+    joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_kinematics, pulley_angles)
 
     # Plot the results
-    plot_results(finger_2, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
+    plot_kinematics_results(finger_kinematics, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
+
+    # Here we perform statics simulation instead
+    finger_statics = Finger(name_stat, r_joints, r_tip, L_phalanxes, type_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
+    for i in range(num_simulations):
+        finger_statics.update_given_pulley_angle(pulley_angles[i])
+
+    Fx = np.zeros((num_simulations, 2)) 
+    Fy = np.zeros((num_simulations, 2))
+    M = np.zeros((num_simulations, 2))
+
+    Fmax = 20 #maximum force in [N]
+    Fx[:,0] = - np.linspace(0,Fmax,num_simulations)
+    Fx[:,1] = - np.linspace(0,0.8*Fmax,num_simulations)
+    force = np.linspace(0,Fmax,num_simulations)
+
+    joint_angles, tendon_tensions, motor_torque, errors = statics_simulation(finger_statics,Fx,Fy,M)
+
+    # plot the results
+    plot_statics_results(finger_statics, force, joint_angles, tendon_tensions, motor_torque, errors, "saved_media")
 
 
-def main():
+
+def NSGA_simulation():
 
     f_1 = 0.5
     f_2 = 0.5*0.5
@@ -101,4 +123,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main_debug()
+    main()
