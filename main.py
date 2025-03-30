@@ -10,7 +10,7 @@ from utility_functions.statics_functions.statics_simulation import statics_simul
 
 
 
-def main():
+def main_3_phalanges():
 
     # FINGER WITH 3 PHALANGES TEST
     # we initialize the finger parameters
@@ -60,21 +60,21 @@ def main():
 
 
 
-    inf_stiff_tendons = [1, 1, 1, 1]
-    k_tendons = [0, 0, 0, 0]
+    inf_stiff_tendons = [1, 1, 1]
+    k_tendons = [0, 0, 0]
     l_springs = [1e-4, 1e-4]
     l_0_springs = [0, 0]
     k_springs = [320, 320]
-    pulley_radius_functions = [lambda x: 0.01, lambda x: 0.0125]
-    tendon_joint_interface = [["e", "t", "e"], ["t", "e", "n"], ["f", "f", "n"], ["f", "f", "f"]]
-    tendon_spring_interface = [[1, 0], [0, 1], [0, 0], [0, 0]]
-    tendon_pulley_interface = [[0, 0], [0, 0], [1, 0], [0, 1]]
+    pulley_radius_functions = [lambda x: 0.01]
+    tendon_joint_interface = [["e", "t", "e"], ["t", "e", "n"], ["f", "f", "f"]]
+    tendon_spring_interface = [[1, 0], [0, 1], [0, 0]]
+    tendon_pulley_interface = [[0], [0], [1]]
 
     finger_3 = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
 
     # Simulation parameters
     num_simulations = 100
-    pulley_angles = np.linspace(0, 3 * np.pi / 4, num_simulations)
+    pulley_angles = np.linspace(0.05, 3 * np.pi / 4, num_simulations)
 
     # Run the simulation
     joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_3, pulley_angles)
@@ -85,6 +85,8 @@ def main():
     # Plot the finger video
     make_animation(finger_3,joint_angles)
     
+
+def main_2_phalanges():
     # FINGER WITH 2 PHALANGES TEST
     # we initialize the finger parameters
     name = "Finger_2_phalanxes"
@@ -414,4 +416,4 @@ def attempt_foot_test():
 
 
 if __name__ == "__main__":
-    main()
+    main_2_phalanges()
