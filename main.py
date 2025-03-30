@@ -120,4 +120,4 @@ def NSGA_simulation():
 
 
 if __name__ == "__main__":
-    main()
+    NSGA_simulation()
