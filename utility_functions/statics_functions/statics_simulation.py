@@ -5,9 +5,9 @@ import numpy as np
 import copy
 
 
-def statics_simulation(finger,forces):
+def statics_simulation(finger,Fx,Fy,M):
 
-    n_simulations = len(forces)
+    n_simulations = Fx.shape[0]  # Extract the number of rows from the forces matrix
 
     # Preallocate arrays for results
     joint_angles = np.zeros((n_simulations, finger.n_joints))
@@ -18,21 +18,10 @@ def statics_simulation(finger,forces):
     #clone the original finger object
     finger_clone = copy.deepcopy(finger)
 
-    Fx = np.zeros(finger_clone.n_joints)
-    Fy = np.zeros(finger_clone.n_joints)
-    M = np.zeros(finger_clone.n_joints)
-
     for i in range(n_simulations):
 
-        beta = 0
-        for j in range(finger_clone.n_joints):
-            beta += finger_clone.joints[j].theta
-
-        Fx[-1]= forces[i]*np.cos(beta)
-        Fy[-1]= forces[i]*np.sin(beta)
-
         #update the forces
-        finger_clone.update_given_phalanx_wrenches(Fx,Fy,M)
+        finger_clone.update_given_phalanx_wrenches(Fx[i, :], Fy[i, :], M[i, :])
 
         #store the joint angles and tendon tensions
         for j in range(finger_clone.n_joints):

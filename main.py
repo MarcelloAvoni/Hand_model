@@ -1,414 +1,118 @@
 import numpy as np
 from math import atan2, sin, cos, pi
 from finger_class.finger_class_definition import Finger
-from utility_functions.plot_functions.plot_results import plot_results
-from utility_functions.plot_functions.plot_finger import make_animation
+from utility_functions.plot_functions.plot_results import plot_kinematics_results, plot_statics_results
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
-from utility_functions.metrics_functions.metrics_calculation import compute_hand_metric, compute_foot_metric
 from utility_functions.statics_functions.statics_simulation import statics_simulation
+from utility_functions.design_functions.design_analysis import NSGA2_analysis
+import matplotlib.pyplot as plt
 
 
-
-
-def main_3_phalanges():
-
-    # FINGER WITH 3 PHALANGES TEST
+def main():
+    # FINGER WITH 2 PHALANGES TEST
     # we initialize the finger parameters
-    name = "Finger_3_phalanges"
+    name_kin = "Kinematics_Simulation"
+    name_stat = "Statics_Simulation"
     f_1 = 0.5
     f_2 = 0.5*0.5
     p_r = 0.0015*1.5
 
-    r_joints = [0.006, 0.005, 0.004]  # Three joints
-    r_tip = 0.003
-    L_phalanxes = [0.04, 0.03, 0.02]
+
+    r_joints = [0.006, 0.005]  # Three joints
+    r_tip = 0.004
+    L_phalanxes = [0.04, 0.03]
     b_a_metacarpal = 0.006
-    l_a = [1, 0, 0]
-    l_b = [0, 0, 0]
-    l_c = [0, 0, 0]
-    l_d = [0, 0, 0]
-
-    for i_iter in range(len(r_joints)):
-
-        if (i_iter == len(r_joints) - 1):
-
-            r_1 = r_joints[i_iter]
-            r_2 = r_tip
-
-        else:
-            r_1 = r_joints[i_iter]
-            r_2 = r_joints[i_iter + 1]
-
-        beta = atan2(2*(r_1-r_2),(L_phalanxes[i_iter]-r_1-r_2))
-
-        if (i_iter == 0):
-            l_a[i_iter] = 2*f_1*r_1
-        elif(i_iter==2):
-            l_a[i_iter] = (0.004 + 2*f_2*r_1)*cos(beta)
-        else:
-            l_a[i_iter] = (2*f_2*r_1)*cos(beta)
-
-        l_b[i_iter] = f_1*r_1*cos(beta)
-
-        if (i_iter == 0):
-            l_c[i_iter] = p_r
-        else:
-            l_c[i_iter] = -p_r
-
-        l_d[i_iter] = -p_r
-
-
+    type_phalanxes = [1,3]
+    L_metacarpal = 0.08
 
 
     inf_stiff_tendons = [1, 1, 1]
     k_tendons = [0, 0, 0]
-    l_springs = [1e-4, 1e-4]
+    l_springs = [5e-4, 5e-4]
     l_0_springs = [0, 0]
     k_springs = [320, 320]
     pulley_radius_functions = [lambda x: 0.01]
-    tendon_joint_interface = [["e", "t", "e"], ["t", "e", "n"], ["f", "f", "f"]]
-    tendon_spring_interface = [[1, 0], [0, 1], [0, 0]]
+    tendon_joint_interface = [["e", "n"], ["t", "e"], ["f", "f"]]
+    tendon_spring_interface = [[1, 0], [0, 1],[0, 0]]
     tendon_pulley_interface = [[0], [0], [1]]
 
-    finger_3 = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
+    finger_kinematics = Finger(name_kin, r_joints, r_tip, L_phalanxes, type_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
 
-    # Simulation parameters
+    # Parameters for the kinematics simulation
     num_simulations = 100
-    pulley_angles = np.linspace(0.05, 3 * np.pi / 4, num_simulations)
+    final_angle = 5* np.pi / 8
+    initial_angle = 1e-4 * final_angle
+    pulley_angles = np.linspace(initial_angle, final_angle, num_simulations)
 
     # Run the simulation
-    joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_3, pulley_angles)
+    joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_kinematics, pulley_angles)
 
     # Plot the results
-    plot_results(finger_3, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
+    plot_kinematics_results(finger_kinematics, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
 
-    # Plot the finger video
-    make_animation(finger_3,joint_angles)
+    # Here we perform statics simulation instead
+    finger_statics = Finger(name_stat, r_joints, r_tip, L_phalanxes, type_phalanxes, L_metacarpal, b_a_metacarpal, f_1, f_2, p_r, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
+    for i in range(num_simulations):
+        finger_statics.update_given_pulley_angle(pulley_angles[i])
+
+    Fx = np.zeros((num_simulations, 2)) 
+    Fy = np.zeros((num_simulations, 2))
+    M = np.zeros((num_simulations, 2))
+
+    Fmax = 20 #maximum force in [N]
+    Fx[:,0] = - np.linspace(0,Fmax,num_simulations)
+    Fx[:,1] = - np.linspace(0,0.8*Fmax,num_simulations)
+    force = np.linspace(0,Fmax,num_simulations)
+
+    joint_angles, tendon_tensions, motor_torque, errors = statics_simulation(finger_statics,Fx,Fy,M)
+
+    # plot the results
+    plot_statics_results(finger_statics, force, joint_angles, tendon_tensions, motor_torque, errors, "saved_media")
+
+
+
+def NSGA_simulation():
+
+    f_1 = 0.5
+    f_2 = 0.5*0.5
+    p_r = 0.0015*1.5
+
+    r_min = 0.003
+    r_max = 0.01
+
+    L_min_phalanx = 0.02
+    L_min_palm = 0.08
+    L_tot = 0.18
+
+    l_spring = 0.1
+    l_0_spring = 0
+    k_spring = 21
+    pulley_radius_function = lambda x: 0.01
+    pulley_rotation = 3 * pi / 4
+    max_force = 0.1
+
+    n_pop = 30
+    n_gen = 10
+    cx_pb = 1
+    mu_pb = 1
+
+    pop, logbook, pop_hist = NSGA2_analysis(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,l_spring,l_0_spring,k_spring,pulley_radius_function,pulley_rotation,max_force,n_pop,n_gen,cx_pb,mu_pb,seed=None)
     
+    #now we want to plot the hand and foot metrics for each design
+    # "b" for 1 phalanx, "g" for 2 phalanxes, "r" for 3 phalanxes
+    color_scheme = ["b", "g", "r"]
+
+    #we plot the results of the pareto front
+    fig, ax = plt.subplots()
+    for i in range(n_pop):
+        hand_metric = pop[i].fitness.values[0]
+        foot_metric = pop[i].fitness.values[1]
+        ax.scatter(hand_metric,foot_metric,color="r")
+
+    ax.set_xlabel("Hand metric")
+    ax.set_ylabel("Foot metric")
+    plt.show()
 
-def main_2_phalanges():
-    # FINGER WITH 2 PHALANGES TEST
-    # we initialize the finger parameters
-    name = "Finger_2_phalanxes"
-    f_1 = 0.5
-    f_2 = 0.5*0.5
-    p_r = 0.0015*1.5
-
-
-    r_joints = [0.006, 0.005]  # Three joints
-    r_tip = 0.004
-    L_phalanxes = [0.04, 0.03]
-    b_a_metacarpal = 0.006
-    l_a = [0, 0]
-    l_b = [0, 0]
-    l_c = [0, 0]
-    l_d = [0, 0]
-
-    for i_iter in range(len(r_joints)):
-
-        if (i_iter == len(r_joints) - 1):
-
-            r_1 = r_joints[i_iter]
-            r_2 = r_tip
-
-        else:
-            r_1 = r_joints[i_iter]
-            r_2 = r_joints[i_iter + 1]
-
-        beta = atan2(2*(r_1-r_2),(L_phalanxes[i_iter]-r_1-r_2))
-
-        if (i_iter == 0):
-            l_a[i_iter] = 2*f_1*r_1
-        else:
-            l_a[i_iter] = (2*f_2*r_1)*cos(beta)
-
-        l_b[i_iter] = f_1*r_1*cos(beta)
-
-        if (i_iter == 0):
-            l_c[i_iter] = p_r
-        else:
-            l_c[i_iter] = -p_r
-
-        l_d[i_iter] = -p_r
-
-
-    inf_stiff_tendons = [1, 1, 1]
-    k_tendons = [0, 0, 0]
-    l_springs = [1e-4, 1e-4]
-    l_0_springs = [0, 0]
-    k_springs = [320, 320]
-    pulley_radius_functions = [lambda x: 0.01]
-    tendon_joint_interface = [["e", "n"], ["t", "e"], ["f", "f"]]
-    tendon_spring_interface = [[1, 0], [0, 1],[0, 0]]
-    tendon_pulley_interface = [[0], [0], [1]]
-
-    finger_2 = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
-
-    # Simulation parameters
-    num_simulations = 100
-    pulley_angles = np.linspace(0, 3 * np.pi / 4, num_simulations)
-
-    # Run the simulation
-    joint_angles, tendon_tensions, motor_torque, errors = kinematics_simulation(finger_2, pulley_angles)
-
-    # Plot the results
-    plot_results(finger_2, pulley_angles, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
-
-    # Plot the finger video
-    make_animation(finger_2,joint_angles)
-
-def debug():
-
-    #we define a simple finger to be used for debugging
-    # FINGER WITH 2 PHALANGES TEST
-    # we initialize the finger parameters
-    name = "debugging_finger"
-
-    r_joints = [1,1]
-    r_tip = 1
-    L_phalanxes = [5, 5]
-    b_a_metacarpal = 1
-    l_a = [0, 0]
-    l_b = [0, 0]
-    l_c = [0, 0]
-    l_d = [0, 0]
-
-    inf_stiff_tendons = [1, 1, 1, 1]
-    k_tendons = [0, 0, 0, 0]
-    l_springs = [1, 1]
-    l_0_springs = [0, 0]
-    k_springs = [1, 1]
-    pulley_radius_functions = [lambda x: 1, lambda x: 1]
-    tendon_joint_interface = [["e", "n"], ["t", "e"], ["f", "n"], ["f", "f"]]
-    tendon_spring_interface = [[1, 0], [0, 1], [0, 0], [0, 0]]
-    tendon_pulley_interface = [[0, 0], [0, 0], [1, 0], [0, 1]]
-
-    finger = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
-
-
-    # we try to debug the system
-    print("INITIAL STATE")
-    print()
-    for i_iter in range(finger.n_tendons):
-        print(f'Tendon {finger.tendons[i_iter].name} has {finger.tendons[i_iter].tension} N of Tension and is {finger.tendons[i_iter].length} m long')
-    print()
-
-
-    theta1 = pi/2
-    theta2 = pi/2
-    l1 = 2 * (1 - sin(theta1/2))
-    l2 = l1 + 2 * (1 - sin(theta2/2))
-
-    finger.update_given_flexor_length([l1,l2])
-
-
-    print("INTERMEDIATE STATE")
-    for i_iter in range(finger.n_tendons):
-        print(f'Tendon {finger.tendons[i_iter].name} has {finger.tendons[i_iter].tension} N of Tension and is {finger.tendons[i_iter].length} m long')
-    print()
-
-    finger.update_given_phalanx_wrenches([-1,-2],[-2,-1],[0,1])
-
-    print("FINAL STATE")
-    for i_iter in range(finger.n_tendons):
-        print(f'Tendon {finger.tendons[i_iter].name} has {finger.tendons[i_iter].tension} N of Tension and is {finger.tendons[i_iter].length} m long')
-    print()
-
-
-def metrics_debug():
-
-    # FINGER WITH 3 PHALANGES TEST
-    # we initialize the finger parameters
-    name = "Finger_3_phalanges"
-    f_1 = 0.5
-    f_2 = 0.5*0.5
-    p_r = 0.0015*1.5
-
-    r_joints = [0.006, 0.005, 0.004]  # Three joints
-    r_tip = 0.003
-    L_phalanxes = [0.04, 0.03, 0.02]
-    b_a_metacarpal = 0.006
-    l_a = [1, 0, 0]
-    l_b = [0, 0, 0]
-    l_c = [0, 0, 0]
-    l_d = [0, 0, 0]
-
-    for i_iter in range(len(r_joints)):
-
-        if (i_iter == len(r_joints) - 1):
-
-            r_1 = r_joints[i_iter]
-            r_2 = r_tip
-
-        else:
-            r_1 = r_joints[i_iter]
-            r_2 = r_joints[i_iter + 1]
-
-        beta = atan2(2*(r_1-r_2),(L_phalanxes[i_iter]-r_1-r_2))
-
-        if (i_iter == 0):
-            l_a[i_iter] = 2*f_1*r_1
-        elif(i_iter==2):
-            l_a[i_iter] = (0.004 + 2*f_2*r_1)*cos(beta)
-        else:
-            l_a[i_iter] = (2*f_2*r_1)*cos(beta)
-
-        l_b[i_iter] = f_1*r_1*cos(beta)
-
-        if (i_iter == 0):
-            l_c[i_iter] = p_r
-        else:
-            l_c[i_iter] = -p_r
-
-        l_d[i_iter] = -p_r
-
-
-
-
-    inf_stiff_tendons = [1, 1, 1, 1]
-    k_tendons = [0, 0, 0, 0]
-    l_springs = [1e-4, 1e-4]
-    l_0_springs = [0, 0]
-    k_springs = [320, 320]
-    pulley_radius_functions = [lambda x: 0.01, lambda x: 0.0125]
-    tendon_joint_interface = [["e", "t", "e"], ["t", "e", "n"], ["f", "f", "n"], ["f", "f", "f"]]
-    tendon_spring_interface = [[1, 0], [0, 1], [0, 0], [0, 0]]
-    tendon_pulley_interface = [[0, 0], [0, 0], [1, 0], [0, 1]]
-
-    finger_3 = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
-
-    # Simulation parameters
-    num_simulations = 100
-    pulley_angles = np.linspace(0.05* 3 * np.pi / 4, 3 * np.pi / 4, num_simulations)
-
-    #estimate hand parameter
-    hand_metric_3 = compute_hand_metric(finger_3, pulley_angles)
-
-    print(f'The hand metric for 3 phalanges is {hand_metric_3}')
-
-        # FINGER WITH 2 PHALANGES TEST
-    # we initialize the finger parameters
-    name = "Finger_2_phalanxes"
-    f_1 = 0.5
-    f_2 = 0.5*0.5
-    p_r = 0.0015*1.5
-
-
-    r_joints = [0.006, 0.005]  # Three joints
-    r_tip = 0.004
-    L_phalanxes = [0.04, 0.03]
-    b_a_metacarpal = 0.006
-    l_a = [0, 0]
-    l_b = [0, 0]
-    l_c = [0, 0]
-    l_d = [0, 0]
-
-    for i_iter in range(len(r_joints)):
-
-        if (i_iter == len(r_joints) - 1):
-
-            r_1 = r_joints[i_iter]
-            r_2 = r_tip
-
-        else:
-            r_1 = r_joints[i_iter]
-            r_2 = r_joints[i_iter + 1]
-
-        beta = atan2(2*(r_1-r_2),(L_phalanxes[i_iter]-r_1-r_2))
-
-        if (i_iter == 0):
-            l_a[i_iter] = 2*f_1*r_1
-        else:
-            l_a[i_iter] = (2*f_2*r_1)*cos(beta)
-
-        l_b[i_iter] = 2*f_1*r_1*cos(beta)
-
-        if (i_iter == 0):
-            l_c[i_iter] = p_r
-        else:
-            l_c[i_iter] = -p_r
-
-        l_d[i_iter] = -p_r
-
-
-    inf_stiff_tendons = [1, 1, 1]
-    k_tendons = [0, 0, 0]
-    l_springs = [1e-3, 1e-3]
-    l_0_springs = [0, 0]
-    k_springs = [320, 320]
-    pulley_radius_functions = [lambda x: 0.01]
-    tendon_joint_interface = [["e", "n"], ["t", "e"], ["f", "f"]]
-    tendon_spring_interface = [[1, 0], [0, 1],[0, 0]]
-    tendon_pulley_interface = [[0], [0], [1]]
-
-    finger_2 = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
-
-
-    #estimate hand parameter
-    hand_metric_2 = compute_hand_metric(finger_2, pulley_angles)
-
-    print(f'The hand metric for 2 phalanges is {hand_metric_2}')
-
-    # Simulation parameters
-    num_simulations = 100
-    force = np.linspace(0, -8e-2, num_simulations)
-
-    # Run the simulation
-    joint_angles, tendon_tensions, motor_torque, errors = statics_simulation(finger_2, force)
-
-    plot_results(finger_2, -force, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
-
-    # Plot the finger video
-    make_animation(finger_2,joint_angles)
-
-
-def attempt_foot_test():
-
-    #we define a simple finger to be used for debugging
-    # FINGER WITH 2 PHALANGES TEST
-    # we initialize the finger parameters
-    name = "finger_for_test"
-
-    r_joints = [1]
-    r_tip = 1
-    L_phalanxes = [10]
-    b_a_metacarpal = 1
-    l_a = [0]
-    l_b = [0]
-    l_c = [0]
-    l_d = [0]
-
-    inf_stiff_tendons = [1, 1]
-    k_tendons = [0, 0]
-    l_springs = [1, 1]
-    l_0_springs = [0, 0]
-    k_springs = [1, 1]
-    pulley_radius_functions = []
-    tendon_joint_interface = [["e"],["f"]]
-    tendon_spring_interface = [[1, 0], [0, 1]]
-    tendon_pulley_interface = [[],[]]
-
-    finger = Finger(name, r_joints, r_tip, L_phalanxes, l_a, l_b, b_a_metacarpal, l_c, l_d, inf_stiff_tendons, k_tendons, l_springs, l_0_springs, k_springs, pulley_radius_functions, tendon_joint_interface, tendon_spring_interface, tendon_pulley_interface)
-    print(finger.tendons[0].tension)
-    print(finger.tendons[1].tension)
-    print(finger.joints[0].theta)
-
-
-    # Simulation parameters
-    num_simulations = 100
-    force = np.linspace(0, -1e-1, num_simulations)
-
-    # Run the simulation
-    joint_angles, tendon_tensions, motor_torque, errors = statics_simulation(finger, force)
-
-    plot_results(finger, -force, joint_angles, tendon_tensions, motor_torque, errors,"saved_media")
-
-    # Plot the finger video
-    make_animation(finger,joint_angles)
-
-    foot_metric = compute_foot_metric(finger,force)
-
-    print(f'The foot metric is {foot_metric}')
 
 
 
@@ -416,4 +120,4 @@ def attempt_foot_test():
 
 
 if __name__ == "__main__":
-    main_2_phalanges()
+    main()

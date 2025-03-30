@@ -15,7 +15,7 @@ from scipy.optimize import least_squares
 class Finger:
 
     #finger class constructor. Notice that the finger is initialized as straigth (as just assembled)
-    def __init__(self,name,r_joints,r_tip,L_phalanxes,l_a,l_b,b_a_metacarpal,l_c,l_d,inf_stiff_tendons,k_tendons,l_springs,l_0_springs,k_springs,pulley_radius_functions,tendon_joint_interface,tendon_spring_interface,tendon_pulley_interface):
+    def __init__(self,name,r_joints,r_tip,L_phalanxes,type_phalanxes,L_metacarpal,b_a_metacarpal,f_1,f_2,p_r,inf_stiff_tendons,k_tendons,l_springs,l_0_springs,k_springs,pulley_radius_functions,tendon_joint_interface,tendon_spring_interface,tendon_pulley_interface):
         
         #name of the finger (string or number)
         self.name = name
@@ -56,7 +56,7 @@ class Finger:
             raise ValueError("The number of tendons must match the number of rows in the tendon-pulley interface matrix")
         
         # Validate that all input lists related to joints have the same length
-        lengths_inputs = [len(r_joints), len(L_phalanxes), len(l_a), len(l_b), len(l_c), len(l_d)]
+        lengths_inputs = [len(r_joints), len(L_phalanxes), len(type_phalanxes)]
         if len(set(lengths_inputs)) != 1:
             raise ValueError("All input lists related to joints must have the same number of entries")
         
@@ -74,6 +74,14 @@ class Finger:
         self.r_joints = r_joints
         self.r_tip = r_tip
         self.L_phalanxes = L_phalanxes
+        self.L_metacarpal = L_metacarpal
+        self.f_1 = f_1
+        self.f_2 = f_2
+        self.p_r = p_r
+
+        # we save the vector that contains information about the phalanxes type (1 = proximal, 2 = intermediate, 3 = distal)
+        # the vector assumes that the first phalanx is always the metacarpal and is the only metacarpal
+        self.type_phalanxes = type_phalanxes
         
         
         #here we save the tendon interface matrices
@@ -131,16 +139,24 @@ class Finger:
                                           l=l_springs[i_iter],
                                           l_0=l_0_springs[i_iter]
                                           )
-
+            
 
         #here we perform data manipulation so to correlate inputs to lower classes, specifically the joint class
         L_wrench_phalanxes = [0] * self.n_joints
         L_joint_centers = [0] * self.n_joints
         gamma_phalanxes = [0] * self.n_joints
-        b_a = [0] * self.n_joints
-        b_b = [0] * self.n_joints
+
         p_x = [0] * self.n_joints
         p_y = [0] * self.n_joints
+
+        l_a = [0] * self.n_joints
+        l_b = [0] * self.n_joints
+        l_c = [0] * self.n_joints
+        l_d = [0] * self.n_joints
+
+        b_a = [0] * self.n_joints
+        b_b = [0] * self.n_joints
+
 
         # Here we initialize the joint list and perform data manipulation 
         for i_iter in range(self.n_joints):
@@ -159,12 +175,45 @@ class Finger:
             L_wrench_phalanxes[i_iter] = L_joint_centers[i_iter]/2
             gamma_phalanxes[i_iter] = atan2(Length_x, Length_y)
 
+            # p initial definition
             p_x[i_iter] = r_2 - r_1
             p_y[i_iter] = L_phalanxes[i_iter]
 
+            # auxiliary variable
+            beta = atan2(2*Length_x,Length_y)
+
+            # l_a definition
+            if (i_iter == 0):
+                l_a[i_iter] = 2*f_1*r_1                          #value for metacarpal
+            else:
+                if(self.type_phalanxes[i_iter - 1] == 1):
+                    l_a[i_iter] = (2*f_2*r_1)*cos(beta)          #value for proximal and distal phalanx
+                elif(self.type_phalanxes[i_iter - 1] == 2):
+                    l_a[i_iter]= (3*f_2*r_1)*cos(beta)
+                    #l_a[i_iter] = (0.004 + 2*f_2*r_1)*cos(beta)  value for intermediate phalanx
+                elif(self.type_phalanxes[i_iter - 1] == 3):
+                    l_a[i_iter] = (2*f_2*r_1)*cos(beta)          #value for proximal and distal phalanx
+                else:
+                    l_a[i_iter] = (2*f_2*r_1)*cos(beta)          #generic value
+                
+
+            # l_b definition
+            l_b[i_iter] = f_1*r_1*cos(beta)
+
+            # l_c definition
+            if (i_iter == 0):
+                l_c[i_iter] = p_r           #value for metacarpal
+            else:
+                l_c[i_iter] = -p_r          #value in all other cases
+
+            # l_d definition
+            l_d[i_iter] = -p_r              # value in all cases
+
+
+            # b_b definition
             b_b[i_iter] = (2*r_2 - r_1) + 2*(L_phalanxes[i_iter] - r_1 - r_2 - l_b[i_iter])*(r_1 - r_2)/(L_phalanxes[i_iter] - r_1 - r_2)
 
-
+            # b_a definition
             if(i_iter == 0):
                 b_a[i_iter] = b_a_metacarpal
             else:
@@ -512,7 +561,7 @@ class Finger:
         residuals =  torques + delta_lengths_flexor
 
         #we scale the residuals
-        for i_iter in range(self.n_joints):
+        for i_iter in range(self.n_joints + self.n_pulleys):
             residuals[i_iter] = residuals[i_iter] / output_scale_factors[i_iter]
         
 

@@ -5,6 +5,7 @@ import numpy as np
 from utility_functions.kinematics_functions.kinematics_simulation import kinematics_simulation
 from utility_functions.statics_functions.statics_simulation import statics_simulation
 from utility_functions.kinematics_functions.kinematics_calculation import finger_kinematics
+from finger_class.finger_class_definition import Finger
 
 
 #function that computes the area of a polygon given its vertices
@@ -39,6 +40,7 @@ def compute_hand_metric(finger, pulley_angles):
     #first we calculate the number of phalanges and angles
     n_phalanges = finger.n_joints
     n_angles = len(pulley_angles)
+    L_tot = finger.L_metacarpal + sum(finger.L_phalanxes)
 
     joint_angles, _, _, _ = kinematics_simulation(finger, pulley_angles)
 
@@ -53,27 +55,32 @@ def compute_hand_metric(finger, pulley_angles):
 
 
     # we compute the matrices thata wil be used for area calculation
-    x = np.zeros((n_angles, 2*n_phalanges))
-    y = np.zeros((n_angles, 2*n_phalanges))
+    x = np.zeros((n_angles, 2 + 2*n_phalanges))
+    y = np.zeros((n_angles, 2 + 2*n_phalanges))
 
     # we create the appropriate matrices for the area calculation
+    x[:, 0] = finger.r_joints[0] * np.ones(n_angles)
+    x[:, 1] = finger.r_joints[0] * np.ones(n_angles)
+    y[:, 0] = np.zeros(n_angles)
+    y[:, 1] = - finger.L_metacarpal * np.ones(n_angles)
     for i in range(n_phalanges):
-        x[:, 2*i] = x_1_phalanx_down[:, i]
-        x[:, 2*i+1] = x_2_phalanx_down[:, i]
-        y[:, 2*i] = y_1_phalanx_down[:, i]
-        y[:, 2*i+1] = y_2_phalanx_down[:, i]
+        x[:, 2 + 2*i] = x_1_phalanx_down[:, i]
+        x[:, 2 + 2*i+1] = x_2_phalanx_down[:, i]
+        y[:, 2 + 2*i] = y_1_phalanx_down[:, i]
+        y[:, 2 + 2*i+1] = y_2_phalanx_down[:, i]
 
     # we compute the area of the polygon
-    area = np.zeros(n_angles)
+    relative_area = np.zeros(n_angles)
     for i in range(n_angles):
-        area[i] = polygon_area(x[i,:].transpose(), y[i,:].transpose())
+        relative_area[i] = polygon_area(x[i,:].transpose(), y[i,:].transpose()) / L_tot**2
+
 
     #we compute the average area over the pulley angles    
-    hand_metric = np.trapz(area, pulley_angles) / (pulley_angles[-1] - pulley_angles[0])
+    hand_metric = np.trapz(relative_area, pulley_angles) / (pulley_angles[-1] - pulley_angles[0])
 
     return hand_metric
 
-def compute_foot_metric(finger,force):
+def compute_foot_metric(finger):
 
     # calculates the average support segment of the foot given the force applied to the finger
     # INPUTS:
@@ -84,32 +91,33 @@ def compute_foot_metric(finger,force):
 
     # we first calculate the number of phalanges and simulations
     n_phalanges = finger.n_joints
-    n_simulations = len(force)
+
+    L_tot = sum(finger.L_phalanxes) + finger.L_metacarpal
 
     #we extract useful variables
-    r_1 = finger.r_joints[0]
-    r_2 = finger.r_tip
+    #r_1 = finger.r_joints[0]
+    #r_2 = finger.r_tip
 
     #we run the simulatioin
-    joint_angles, _, _, _ = statics_simulation(finger, force)
+    #joint_angles, _, _, _ = statics_simulation(finger, force)
 
     # we preallocate the variables that will be used to store the coordinates of the main points
-    x_tip = np.zeros(n_simulations)
-    y_tip = np.zeros(n_simulations)
+    #x_tip = np.zeros(n_simulations)
+    #y_tip = np.zeros(n_simulations)
 
     #we extract the finger positions from the kinematics
-    for i_iter in range(n_simulations):
-        (_, _, _, _, _, _, x_2, y_2, _, _, _, _) = finger_kinematics(finger, joint_angles[i_iter,:])
-        x_tip[i_iter] = x_2[-1]
-        y_tip[i_iter] = y_2[-1]
+    #for i_iter in range(n_simulations):
+    #    (_, _, _, _, _, _, x_2, y_2, _, _, _, _) = finger_kinematics(finger, joint_angles[i_iter,:])
+    #    x_tip[i_iter] = x_2[-1]
+    #    y_tip[i_iter] = y_2[-1]
 
     #we compute the support segment for each iteration
-    segment_length = np.zeros(n_simulations)
-    for i_iter in range(n_simulations):
-        segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2 - (r_1 - r_2)**2)
+    #relative_segment_length = np.zeros(n_simulations)
+    #for i_iter in range(n_simulations):
+    #    relative_segment_length[i_iter] = np.sqrt(x_tip[i_iter]**2 + y_tip[i_iter]**2) / L_tot
 
 
     #we compute the average support segment over the simulations
-    foot_metric = np.trapz(segment_length, np.abs(force)) / np.abs(force[-1] - force[0])
+    foot_metric = finger.L_metacarpal / L_tot
 
     return foot_metric
