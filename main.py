@@ -143,6 +143,8 @@ def NSGA_simulation():
     ax.set_ylabel("Foot metric [-]")
     ax.legend()
     plt.show()
+    # Save the figure as a PDF file
+    fig.savefig("saved_media/NSGA_simulation_results.pdf", format="pdf")
 
 
 
