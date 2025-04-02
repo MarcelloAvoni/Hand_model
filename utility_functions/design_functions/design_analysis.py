@@ -4,6 +4,7 @@ from utility_functions.metrics_functions.metrics_calculation import compute_hand
 import numpy as np
 import random
 from deap import base, creator, tools
+import matplotlib.pyplot as plt
 
 def code_individual(r_joints,r_tip,L_phalanxes,L_metacarpal):
 
@@ -122,9 +123,9 @@ def penalty_function(n_joints,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,individ
 
     #we compute the distance between the total length and the sum of the phalanges
     if abs(sum(L_phalanxes) + L_metacarpal - L_tot) > 1e-4:
-        distance += (sum(L_phalanxes) + L_metacarpal - L_tot)**2
+        distance += 10000*(sum(L_phalanxes) + L_metacarpal - L_tot)**2
 
-    penalty = - 10*distance - 10
+    penalty = - 100*distance - 100
 
     return penalty
 
@@ -289,7 +290,7 @@ def NSGA2_analysis(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,l_spri
     random.seed(seed)
 
     #secondly we calculate the number of joints
-    n_joints = 2
+    n_joints = 1
 
     # we create the boundaries for the independent variables
     LOW_BOUND = [r_min] * n_joints + [r_min] + [L_min_phalanx] * n_joints + [L_min_palm]
@@ -313,7 +314,7 @@ def NSGA2_analysis(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,l_spri
 
 
     toolbox.register("evaluate", evaluate_design, n_joints,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,f_1, f_2, p_r, l_spring, l_0_spring, k_spring, pulley_radius_function, pulley_rotation, max_force)
-    toolbox.register("mate", tools.cxSimulatedBinaryBounded, eta=20, low=LOW_BOUND, up=UP_BOUND)
+    toolbox.register("mate", tools.cxSimulatedBinaryBounded, eta=30, low=LOW_BOUND, up=UP_BOUND)
     toolbox.register("mutate", tools.mutPolynomialBounded, eta=20, low=LOW_BOUND, up=UP_BOUND, indpb=1/len(UP_BOUND))
     toolbox.register("select", tools.selNSGA2)
 
