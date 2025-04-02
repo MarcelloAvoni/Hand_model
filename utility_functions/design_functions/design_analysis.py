@@ -247,7 +247,7 @@ def evaluate_design(n_joints,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,f_1, f_2
 
 
     # we compute the metrics
-    pulley_angles = np.linspace(0.01*pulley_rotation, pulley_rotation, 100)
+    pulley_angles = np.linspace(0.05*pulley_rotation, pulley_rotation, 100)
     hand_metric = compute_hand_metric(hand, pulley_angles)
 
     foot_metric = compute_foot_metric(foot)
@@ -284,13 +284,10 @@ def create_design_database(n_design,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_
     return database
     
 
-def NSGA2_analysis(f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,l_spring,l_0_spring,k_spring,pulley_radius_function,pulley_rotation,max_force,n_pop,n_gen,cx_pb,mu_pb,seed=None):
+def NSGA2_analysis(n_joints,f_1,f_2,p_r,r_min,r_max,L_min_phalanx,L_min_palm,L_tot,l_spring,l_0_spring,k_spring,pulley_radius_function,pulley_rotation,max_force,n_pop,n_gen,cx_pb,mu_pb,seed=None):
     
     # first we select the seed
     random.seed(seed)
-
-    #secondly we calculate the number of joints
-    n_joints = 1
 
     # we create the boundaries for the independent variables
     LOW_BOUND = [r_min] * n_joints + [r_min] + [L_min_phalanx] * n_joints + [L_min_palm]
