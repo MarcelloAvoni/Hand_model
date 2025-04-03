@@ -22,7 +22,7 @@ def main():
     r_joints = [0.006, 0.005]  # Three joints
     r_tip = 0.004
     L_phalanxes = [0.04, 0.03]
-    b_a_metacarpal = 0.006
+    b_a_metacarpal = 0.00825
     type_phalanxes = [1,3]
     L_metacarpal = 0.08
 
@@ -149,4 +149,4 @@ def NSGA_simulation():
 
 
 if __name__ == "__main__":
-    NSGA_simulation()
+    main()
